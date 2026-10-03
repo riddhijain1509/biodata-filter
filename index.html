@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biodata Filter</title>
+    <meta
+      name="description"
+      content="Filter and rank biodata profiles from structured form data, with links to original PDFs."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2314263d'/%3E%3Cpath d='M18 15h22l8 8v26H18z' fill='%23f7fafc'/%3E%3Cpath d='M40 15v9h8' fill='%23dbeafe'/%3E%3Cpath d='M24 32h16M24 39h12' stroke='%2314263d' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar" aria-label="Biodata Filter">
+        <div class="brand">
+          <span class="brand-mark">B</span>
+          <div>
+            <strong>Biodata Filter</strong>
+            <small>Private profile search</small>
+          </div>
+        </div>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Biodata Search</p>
+          <h1 id="page-title">Find matching profiles without opening every PDF.</h1>
+          <div class="hero-metrics" aria-label="Search highlights">
+            <span>Age</span>
+            <span>Height</span>
+            <span>Gotra</span>
+            <span>Education</span>
+          </div>
+        </div>
+        <div class="summary-card">
+          <span id="resultCount">0</span>
+          <small>matching profiles</small>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="filters" aria-label="Profile filters">
+          <div class="filter-header">
+            <h2>Filters</h2>
+            <button id="resetBtn" type="button">Reset</button>
+          </div>
+
+          <div class="filter-section-title">Quick search</div>
+          <label>
+            Search
+            <input id="keyword" type="search" placeholder="Name, job, education, city" />
+          </label>
+
+          <div class="filter-section-title">Basics</div>
+          <div class="range-row">
+            <label>
+              Min age
+              <input id="minAge" type="number" min="18" max="60" placeholder="Any" />
+            </label>
+            <label>
+              Max age
+              <input id="maxAge" type="number" min="18" max="60" placeholder="Any" />
+            </label>
+          </div>
+
+          <div class="range-row">
+            <label>
+              Min height
+              <input id="minHeight" type="number" min="130" max="210" placeholder="cm" />
+            </label>
+            <label>
+              Max height
+              <input id="maxHeight" type="number" min="130" max="210" placeholder="cm" />
+            </label>
+          </div>
+
+          <div class="filter-section-title">Community</div>
+          <label>
+            Gotra rule
+            <select id="gotraMode">
+              <option value="any">No gotra preference</option>
+              <option value="include">Show selected gotra</option>
+              <option value="exclude">Hide selected gotra</option>
+            </select>
+          </label>
+
+          <label>
+            Gotra
+            <input id="gotra" type="text" placeholder="Garg, Goel, Bansal" />
+          </label>
+
+          <div class="filter-section-title">Profile details</div>
+          <label>
+            Education preference
+            <input id="education" type="text" placeholder="Medical, B.Tech, MBA, postgraduate" />
+          </label>
+
+          <label>
+            Profession preference
+            <input id="profession" type="text" placeholder="Doctor, engineer, teacher" />
+          </label>
+
+          <label>
+            City or district
+            <input id="district" type="text" placeholder="Noida, Lucknow, Dehradun" />
+          </label>
+        </aside>
+
+        <section class="results" aria-live="polite">
+          <div class="results-head">
+            <div>
+              <h2>Ranked profiles</h2>
+              <p id="dataStatus">Profiles that do not match required filters are hidden. Remaining profiles are sorted by strongest match.</p>
+            </div>
+            <span class="data-badge">Live database</span>
+          </div>
+          <div id="resultsList" class="results-list"></div>
+          <div id="emptyState" class="empty-state" hidden>
+            No profiles match these filters. Try widening the age range or removing one required filter.
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
