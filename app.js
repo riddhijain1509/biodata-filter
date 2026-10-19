@@ -1,4 +1,4 @@
-import { requireSession, supabase } from "./auth-client.js";
+import { requireSession, supabase } from "./auth-client.js?v=20261019-auth";
 import {
   fetchProfilesFromSupabase,
   isSupabaseConfigured,
@@ -312,11 +312,11 @@ logoutBtn.addEventListener("click", async () => {
   logoutBtn.disabled = true;
   logoutBtn.textContent = "Logging out…";
   await supabase.auth.signOut();
-  window.location.replace("/login.html");
+  window.location.replace(new URL("./login.html?next=./search.html", window.location.href).href);
 });
 
 supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") window.location.replace("/login.html");
+  if (event === "SIGNED_OUT") window.location.replace(new URL("./login.html?next=./search.html", window.location.href).href);
 });
 
 loadProfiles();

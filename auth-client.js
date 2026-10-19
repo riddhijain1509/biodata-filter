@@ -19,7 +19,8 @@ export async function requireSession() {
 
   if (!data.session) {
     const next = `${window.location.pathname}${window.location.search}`;
-    window.location.replace(`/login.html?next=${encodeURIComponent(next)}`);
+    const loginUrl = new URL(`./login.html?next=${encodeURIComponent(next)}`, window.location.href);
+    window.location.replace(loginUrl.href);
     return null;
   }
 
@@ -31,7 +32,7 @@ export function safeNextPath() {
   if (requested && requested.startsWith("/") && !requested.startsWith("//")) {
     return requested;
   }
-  return "/";
+  return new URL("./search.html", window.location.href).href;
 }
 
 export function normalizeMobileNumber(value) {

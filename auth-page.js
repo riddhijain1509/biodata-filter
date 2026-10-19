@@ -2,7 +2,7 @@ import {
   normalizeMobileNumber,
   safeNextPath,
   supabase,
-} from "./auth-client.js";
+} from "./auth-client.js?v=20261019-auth";
 
 const page = document.body.dataset.authPage;
 const form = document.querySelector("#authForm");
@@ -15,11 +15,6 @@ async function initialize() {
   const params = new URLSearchParams(window.location.search);
   if (page === "login" && params.get("confirmed") === "1") {
     showStatus("Your email is confirmed. You can now log in.", "success");
-  }
-
-  if (page === "login" || page === "signup") {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) window.location.replace(safeNextPath());
   }
 
   if (page === "update-password") {
@@ -72,7 +67,7 @@ async function signup() {
     throw new Error("The passwords do not match.");
   }
 
-  const emailRedirectTo = `${window.location.origin}/login.html?confirmed=1`;
+  const emailRedirectTo = new URL("./login.html?confirmed=1", window.location.href).href;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -84,7 +79,7 @@ async function signup() {
   if (error) throw error;
 
   if (data.session) {
-    window.location.replace("/");
+    window.location.replace(safeNextPath());
     return;
   }
 
@@ -97,7 +92,7 @@ async function signup() {
 
 async function requestPasswordReset() {
   const email = fieldValue("email");
-  const redirectTo = `${window.location.origin}/update-password.html`;
+  const redirectTo = new URL("./update-password.html", window.location.href).href;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo,
   });
@@ -125,7 +120,7 @@ async function updatePassword() {
   if (error) throw error;
 
   showStatus("Password updated. Redirecting to your profiles…", "success");
-  window.setTimeout(() => window.location.replace("/"), 800);
+  window.setTimeout(() => window.location.replace(new URL("./search.html", window.location.href).href), 800);
 }
 
 function fieldValue(id) {
