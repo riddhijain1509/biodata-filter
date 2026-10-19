@@ -6,7 +6,7 @@
     <title>Biodata Filter</title>
     <meta
       name="description"
-      content="Filter and rank biodata profiles from structured form data, with links to original PDFs."
+      content="Search biodata profiles by age, height, occupation, income, caste, Manglik status, and district."
     />
     <link
       rel="icon"
@@ -25,17 +25,21 @@
             <small>Private profile search</small>
           </div>
         </div>
+        <div class="account-actions">
+          <span id="userEmail" class="account-email"></span>
+          <button id="logoutBtn" class="secondary-button" type="button">Log out</button>
+        </div>
       </header>
 
       <section class="intro" aria-labelledby="page-title">
         <div>
-          <p class="eyebrow">Biodata Search</p>
-          <h1 id="page-title">Find matching profiles without opening every PDF.</h1>
-          <div class="hero-metrics" aria-label="Search highlights">
-            <span>Age</span>
-            <span>Height</span>
-            <span>Gotra</span>
-            <span>Education</span>
+          <p class="eyebrow">Biodata search</p>
+          <h1 id="page-title">Find suitable profiles using clear preferences.</h1>
+          <div class="hero-metrics" aria-label="Available filters">
+            <span>Age and height</span>
+            <span>Occupation and income</span>
+            <span>Caste and Manglik</span>
+            <span>Family and posting district</span>
           </div>
         </div>
         <div class="summary-card">
@@ -51,78 +55,110 @@
             <button id="resetBtn" type="button">Reset</button>
           </div>
 
-          <div class="filter-section-title">Quick search</div>
-          <label>
-            Search
-            <input id="keyword" type="search" placeholder="Name, job, education, city" />
-          </label>
-
-          <div class="filter-section-title">Basics</div>
-          <div class="range-row">
+          <div class="filter-content">
+            <div class="filter-section-title">Quick search</div>
             <label>
-              Min age
-              <input id="minAge" type="number" min="18" max="60" placeholder="Any" />
+              Name or profile ID
+              <input id="keyword" type="search" placeholder="Search profiles" />
             </label>
+
+            <div class="filter-section-title">Age and height</div>
+            <div class="range-row">
+              <label>
+                Min age
+                <input id="minAge" type="number" min="18" max="80" placeholder="Any" />
+              </label>
+              <label>
+                Max age
+                <input id="maxAge" type="number" min="18" max="80" placeholder="Any" />
+              </label>
+            </div>
+
+            <div class="range-row">
+              <label>
+                Min height
+                <input id="minHeight" type="number" min="100" max="250" placeholder="cm" />
+              </label>
+              <label>
+                Max height
+                <input id="maxHeight" type="number" min="100" max="250" placeholder="cm" />
+              </label>
+            </div>
+
+            <div class="filter-section-title">Work and income</div>
             <label>
-              Max age
-              <input id="maxAge" type="number" min="18" max="60" placeholder="Any" />
+              Occupation
+              <select id="occupation">
+                <option value="">Any occupation</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Finance">Finance</option>
+                <option value="Business">Business</option>
+                <option value="Management">Management</option>
+                <option value="Government">Government</option>
+                <option value="Teaching">Teaching</option>
+                <option value="Legal">Legal</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Not Working">Not Working</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+
+            <label>
+              Annual income
+              <select id="incomeBand">
+                <option value="">Any income</option>
+                <option value="under15">Less than 15 LPA</option>
+                <option value="15to25">Between 15 and 25 LPA</option>
+                <option value="over25">More than 25 LPA</option>
+              </select>
+            </label>
+
+            <div class="filter-section-title">Community</div>
+            <label>
+              Caste
+              <select id="caste">
+                <option value="">Any caste</option>
+              </select>
+            </label>
+
+            <label>
+              Manglik
+              <select id="manglik">
+                <option value="">Any</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+
+            <div class="filter-section-title">Location</div>
+            <label>
+              Family district
+              <select id="familyDistrict">
+                <option value="">Any family district</option>
+              </select>
+            </label>
+
+            <label class="last-filter">
+              Posting district
+              <select id="postingDistrict">
+                <option value="">Any posting district</option>
+              </select>
             </label>
           </div>
-
-          <div class="range-row">
-            <label>
-              Min height
-              <input id="minHeight" type="number" min="130" max="210" placeholder="cm" />
-            </label>
-            <label>
-              Max height
-              <input id="maxHeight" type="number" min="130" max="210" placeholder="cm" />
-            </label>
-          </div>
-
-          <div class="filter-section-title">Community</div>
-          <label>
-            Gotra rule
-            <select id="gotraMode">
-              <option value="any">No gotra preference</option>
-              <option value="include">Show selected gotra</option>
-              <option value="exclude">Hide selected gotra</option>
-            </select>
-          </label>
-
-          <label>
-            Gotra
-            <input id="gotra" type="text" placeholder="Garg, Goel, Bansal" />
-          </label>
-
-          <div class="filter-section-title">Profile details</div>
-          <label>
-            Education preference
-            <input id="education" type="text" placeholder="Medical, B.Tech, MBA, postgraduate" />
-          </label>
-
-          <label>
-            Profession preference
-            <input id="profession" type="text" placeholder="Doctor, engineer, teacher" />
-          </label>
-
-          <label>
-            City or district
-            <input id="district" type="text" placeholder="Noida, Lucknow, Dehradun" />
-          </label>
         </aside>
 
         <section class="results" aria-live="polite">
           <div class="results-head">
             <div>
-              <h2>Ranked profiles</h2>
-              <p id="dataStatus">Profiles that do not match required filters are hidden. Remaining profiles are sorted by strongest match.</p>
+              <h2>Profiles</h2>
+              <p id="dataStatus">Loading profile data…</p>
             </div>
-            <span class="data-badge">Live database</span>
+            <span class="data-badge">Supabase</span>
           </div>
           <div id="resultsList" class="results-list"></div>
           <div id="emptyState" class="empty-state" hidden>
-            No profiles match these filters. Try widening the age range or removing one required filter.
+            No profiles match these filters. Try widening a range or clearing one preference.
           </div>
         </section>
       </section>

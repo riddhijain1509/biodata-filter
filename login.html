@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log in | Biodata Filter</title>
+    <meta name="description" content="Log in to search approved biodata profiles." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-page" data-auth-page="login">
+    <main class="auth-shell">
+      <a class="auth-brand" href="/login.html" aria-label="Biodata Filter login">
+        <span class="brand-mark">B</span>
+        <span><strong>Biodata Filter</strong><small>Private profile search</small></span>
+      </a>
+
+      <section class="auth-card" aria-labelledby="auth-title">
+        <p class="eyebrow">Welcome back</p>
+        <h1 id="auth-title">Log in</h1>
+        <p class="auth-intro">Use your registered email and password to access biodata profiles.</p>
+
+        <form id="authForm" class="auth-form">
+          <label>
+            Email
+            <input id="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+          </label>
+          <label>
+            Password
+            <input id="password" type="password" autocomplete="current-password" required placeholder="Your password" />
+          </label>
+          <div id="authStatus" class="auth-status" role="status" hidden></div>
+          <button class="auth-submit" type="submit">Log in</button>
+        </form>
+
+        <div class="auth-links">
+          <a href="/forgot-password.html">Forgot password?</a>
+          <span>New here? <a href="/signup.html">Create an account</a></span>
+        </div>
+      </section>
+    </main>
+    <script src="auth-page.js" type="module"></script>
+  </body>
+</html>

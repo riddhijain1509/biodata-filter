@@ -1,8 +1,10 @@
-import { profiles } from "./profiles.js";
-import { fetchProfilesFromSupabase, isSupabaseConfigured } from "./supabase-client.js";
+import { requireSession, supabase } from "./auth-client.js";
+import {
+  fetchProfilesFromSupabase,
+  isSupabaseConfigured,
+} from "./supabase-client.js";
 
-const currentYear = new Date().getFullYear();
-let activeProfiles = profiles;
+let activeProfiles = [];
 
 const controls = {
   keyword: document.querySelector("#keyword"),
@@ -10,11 +12,12 @@ const controls = {
   maxAge: document.querySelector("#maxAge"),
   minHeight: document.querySelector("#minHeight"),
   maxHeight: document.querySelector("#maxHeight"),
-  gotraMode: document.querySelector("#gotraMode"),
-  gotra: document.querySelector("#gotra"),
-  education: document.querySelector("#education"),
-  profession: document.querySelector("#profession"),
-  district: document.querySelector("#district"),
+  occupation: document.querySelector("#occupation"),
+  incomeBand: document.querySelector("#incomeBand"),
+  caste: document.querySelector("#caste"),
+  manglik: document.querySelector("#manglik"),
+  familyDistrict: document.querySelector("#familyDistrict"),
+  postingDistrict: document.querySelector("#postingDistrict"),
 };
 
 const resultCount = document.querySelector("#resultCount");
@@ -22,29 +25,8 @@ const resultsList = document.querySelector("#resultsList");
 const emptyState = document.querySelector("#emptyState");
 const resetBtn = document.querySelector("#resetBtn");
 const dataStatus = document.querySelector("#dataStatus");
-
-const aliases = new Map([
-  ["btech", "engineering"],
-  ["b tech", "engineering"],
-  ["bachelor of technology", "engineering"],
-  ["engineer", "engineering"],
-  ["mbbs", "medical"],
-  ["md", "medical"],
-  ["ms surgery", "medical"],
-  ["general surgery", "medical"],
-  ["doctor", "medical"],
-  ["bcom", "commerce"],
-  ["b com", "commerce"],
-  ["mcom", "commerce"],
-  ["ba", "arts"],
-  ["ma", "postgraduate"],
-  ["mba", "management"],
-  ["llb", "law"],
-  ["advocate", "law"],
-  ["lawyer", "law"],
-  ["bed", "education"],
-  ["b ed", "education"],
-]);
+const userEmail = document.querySelector("#userEmail");
+const logoutBtn = document.querySelector("#logoutBtn");
 
 function normalize(value) {
   return String(value || "")
@@ -54,53 +36,27 @@ function normalize(value) {
     .trim();
 }
 
-function normalizePreference(value) {
-  const normalized = normalize(value);
-  return aliases.get(normalized) || normalized;
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const birthDate = new Date(`${dateOfBirth}T00:00:00`);
+  if (Number.isNaN(birthDate.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const birthdayHasPassed =
+    today.getMonth() > birthDate.getMonth() ||
+    (today.getMonth() === birthDate.getMonth() &&
+      today.getDate() >= birthDate.getDate());
+
+  if (!birthdayHasPassed) age -= 1;
+  return age;
 }
 
-function levenshtein(a, b) {
-  if (!a || !b) return Math.max(a.length, b.length);
-  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-  for (let i = 0; i <= a.length; i += 1) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j += 1) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i += 1) {
-    for (let j = 1; j <= b.length; j += 1) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
-    }
-  }
-  return dp[a.length][b.length];
-}
-
-function fuzzyIncludes(source, query) {
-  const cleanSource = normalize(source);
-  const cleanQuery = normalizePreference(query);
-  if (!cleanQuery) return true;
-  if (cleanSource.includes(cleanQuery)) return true;
-
-  const sourceWords = cleanSource.split(" ").filter(Boolean);
-  const queryWords = cleanQuery.split(" ").filter(Boolean);
-  return queryWords.every((queryWord) =>
-    sourceWords.some((sourceWord) => {
-      if (sourceWord.includes(queryWord) || queryWord.includes(sourceWord)) return true;
-      const maxDistance = queryWord.length <= 5 ? 1 : 2;
-      return levenshtein(sourceWord, queryWord) <= maxDistance;
-    }),
-  );
-}
-
-function profileSearchText(profile) {
-  return [
-    profile.name,
-    profile.surname,
-    profile.gotra,
-    profile.education,
-    profile.educationLevel,
-    profile.educationStream,
-    profile.profession,
-    profile.district,
-  ].join(" ");
+function formatDate(dateOfBirth) {
+  if (!dateOfBirth) return "Not listed";
+  const parts = dateOfBirth.split("-");
+  if (parts.length !== 3) return dateOfBirth;
+  return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
 function escapeHtml(value) {
@@ -124,145 +80,219 @@ function getInitials(name) {
 
 function getFilters() {
   return {
-    keyword: controls.keyword.value,
-    minAge: Number(controls.minAge.value) || null,
-    maxAge: Number(controls.maxAge.value) || null,
-    minHeight: Number(controls.minHeight.value) || null,
-    maxHeight: Number(controls.maxHeight.value) || null,
-    gotraMode: controls.gotraMode.value,
-    gotra: controls.gotra.value,
-    education: controls.education.value,
-    profession: controls.profession.value,
-    district: controls.district.value,
+    keyword: normalize(controls.keyword.value),
+    minAge: toNullableNumber(controls.minAge.value),
+    maxAge: toNullableNumber(controls.maxAge.value),
+    minHeight: toNullableNumber(controls.minHeight.value),
+    maxHeight: toNullableNumber(controls.maxHeight.value),
+    occupation: controls.occupation.value,
+    incomeBand: controls.incomeBand.value,
+    caste: controls.caste.value,
+    manglik: controls.manglik.value,
+    familyDistrict: controls.familyDistrict.value,
+    postingDistrict: controls.postingDistrict.value,
   };
 }
 
-function scoreProfile(profile, filters) {
-  const age = profile.age || (profile.birthYear ? currentYear - profile.birthYear : null);
-  let score = 0;
-  const reasons = [];
+function toNullableNumber(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
 
-  if (filters.minAge && (!age || age < filters.minAge)) return null;
-  if (filters.maxAge && (!age || age > filters.maxAge)) return null;
-  if (filters.minHeight && (!profile.heightCm || profile.heightCm < filters.minHeight)) return null;
-  if (filters.maxHeight && (!profile.heightCm || profile.heightCm > filters.maxHeight)) return null;
+function matchesProfile(profile, filters) {
+  const age = calculateAge(profile.dateOfBirth);
+  const searchable = normalize(
+    [
+      profile.profileId,
+      profile.name,
+      profile.caste,
+      profile.occupation,
+      profile.familyDistrict,
+      profile.postingDistrict,
+    ].join(" "),
+  );
 
-  if (filters.gotra) {
-    const gotraMatches = fuzzyIncludes(profile.gotra, filters.gotra);
-    if (filters.gotraMode === "include" && !gotraMatches) return null;
-    if (filters.gotraMode === "exclude" && gotraMatches) return null;
-    if (gotraMatches && filters.gotraMode !== "exclude") {
-      score += 25;
-      reasons.push("gotra");
-    }
+  if (filters.keyword && !searchable.includes(filters.keyword)) return false;
+  if (filters.minAge !== null && (age === null || age < filters.minAge)) {
+    return false;
+  }
+  if (filters.maxAge !== null && (age === null || age > filters.maxAge)) {
+    return false;
+  }
+  if (
+    filters.minHeight !== null &&
+    (profile.heightCm === null || profile.heightCm < filters.minHeight)
+  ) {
+    return false;
+  }
+  if (
+    filters.maxHeight !== null &&
+    (profile.heightCm === null || profile.heightCm > filters.maxHeight)
+  ) {
+    return false;
+  }
+  if (
+    filters.occupation &&
+    normalize(profile.occupation) !== normalize(filters.occupation)
+  ) {
+    return false;
+  }
+  if (!matchesIncomeBand(profile.incomeLpa, filters.incomeBand)) return false;
+  if (filters.caste && normalize(profile.caste) !== normalize(filters.caste)) {
+    return false;
+  }
+  if (filters.manglik === "yes" && profile.manglik !== true) return false;
+  if (filters.manglik === "no" && profile.manglik !== false) return false;
+  if (
+    filters.familyDistrict &&
+    normalize(profile.familyDistrict) !== normalize(filters.familyDistrict)
+  ) {
+    return false;
+  }
+  if (
+    filters.postingDistrict &&
+    normalize(profile.postingDistrict) !== normalize(filters.postingDistrict)
+  ) {
+    return false;
   }
 
-  if (filters.keyword) {
-    if (!fuzzyIncludes(profileSearchText(profile), filters.keyword)) return null;
-    score += 10;
-    reasons.push("keyword");
-  }
+  return true;
+}
 
-  if (filters.education) {
-    const educationText = `${profile.education} ${profile.educationLevel} ${profile.educationStream}`;
-    if (!fuzzyIncludes(educationText, filters.education)) return null;
-    score += 30;
-    reasons.push("education");
-  }
-
-  if (filters.profession) {
-    if (!fuzzyIncludes(profile.profession, filters.profession)) return null;
-    score += 20;
-    reasons.push("profession");
-  }
-
-  if (filters.district) {
-    if (!fuzzyIncludes(profile.district, filters.district)) return null;
-    score += 10;
-    reasons.push("city");
-  }
-
-  if (filters.minAge || filters.maxAge) {
-    score += 15;
-    reasons.push("age");
-  }
-
-  if (filters.minHeight || filters.maxHeight) {
-    score += 10;
-    reasons.push("height");
-  }
-
-  return { ...profile, age, score, reasons };
+function matchesIncomeBand(incomeLpa, band) {
+  if (!band) return true;
+  if (incomeLpa === null || incomeLpa === undefined) return false;
+  if (band === "under15") return incomeLpa < 15;
+  if (band === "15to25") return incomeLpa >= 15 && incomeLpa <= 25;
+  if (band === "over25") return incomeLpa > 25;
+  return true;
 }
 
 function renderProfile(profile) {
+  const age = calculateAge(profile.dateOfBirth);
   const pdfAction = profile.pdfUrl
-    ? `<a class="pdf-link" href="${escapeHtml(profile.pdfUrl)}" target="_blank" rel="noreferrer">Open biodata PDF</a>`
+    ? `<a class="pdf-link" href="${escapeHtml(profile.pdfUrl)}" target="_blank" rel="noreferrer">View biodata PDF</a>`
     : `<span class="missing-pdf">PDF link pending</span>`;
-  const location = profile.district || "Location not listed";
-  const matchedText = profile.reasons.length ? profile.reasons.join(", ") : "available profile data";
 
   return `
     <article class="profile-card">
       <div class="profile-topline">
-        <div class="avatar" aria-hidden="true">${escapeHtml(getInitials(profile.name))}</div>
-        <div>
-          <p class="profile-id">Profile ${escapeHtml(profile.sno)}</p>
-          <h3>${escapeHtml(profile.name)}</h3>
+        <div class="profile-identity">
+          <div class="avatar" aria-hidden="true">${escapeHtml(getInitials(profile.name))}</div>
+          <div>
+            <p class="profile-id">Profile ${escapeHtml(profile.profileId)}</p>
+            <h3>${escapeHtml(profile.name)}</h3>
+          </div>
         </div>
-        <span class="location-chip">${escapeHtml(location)}</span>
+        <span class="location-chip">${escapeHtml(profile.postingDistrict || "Posting district not listed")}</span>
       </div>
-      <p class="profile-subtitle">${escapeHtml(profile.education || "Education not listed")}</p>
-      <p class="profile-work">${escapeHtml(profile.profession || "Profession not listed")}</p>
-        <div class="meta">
-        <span class="pill">Age ${escapeHtml(profile.age || "Not listed")}</span>
-        <span class="pill">Height ${escapeHtml(profile.heightText || (profile.heightCm ? profile.heightCm + " cm" : "Not listed"))}</span>
-        <span class="pill">Gotra ${escapeHtml(profile.gotra || "Not listed")}</span>
-        <span class="pill">${escapeHtml(profile.educationStream || "Stream not listed")}</span>
-        </div>
+
+      <div class="profile-detail-grid">
+        ${renderDetail("Age", age === null ? "Not listed" : `${age} years`)}
+        ${renderDetail("Height", profile.heightText || (profile.heightCm ? `${profile.heightCm} cm` : "Not listed"))}
+        ${renderDetail("Income", profile.incomeText || (profile.incomeLpa !== null ? `${profile.incomeLpa} LPA` : "Not listed"))}
+        ${renderDetail("Occupation", profile.occupation || "Not listed")}
+        ${renderDetail("Caste", profile.caste || "Not listed")}
+        ${renderDetail("Manglik", profile.manglik === null ? "Not listed" : profile.manglik ? "Yes" : "No")}
+        ${renderDetail("Family district", profile.familyDistrict || "Not listed")}
+        ${renderDetail("Posting district", profile.postingDistrict || "Not listed")}
+      </div>
+
       <div class="card-footer">
-        <span class="match-note">Matched on ${escapeHtml(matchedText)}</span>
+        <span class="match-note">DOB ${escapeHtml(formatDate(profile.dateOfBirth))}</span>
         <div class="actions">${pdfAction}</div>
       </div>
     </article>
   `;
 }
 
+function renderDetail(label, value) {
+  return `
+    <div class="profile-detail">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `;
+}
+
 function render() {
   const filters = getFilters();
-  const ranked = activeProfiles
-    .map((profile) => scoreProfile(profile, filters))
-    .filter(Boolean)
-    .sort((a, b) => {
-      const ageA = Number.isFinite(a.age) ? a.age : 999;
-      const ageB = Number.isFinite(b.age) ? b.age : 999;
-      return b.score - a.score || ageA - ageB || String(a.name || "").localeCompare(String(b.name || ""));
-    });
+  const filtered = activeProfiles
+    .filter((profile) => matchesProfile(profile, filters))
+    .sort((a, b) =>
+      String(a.profileId || "").localeCompare(String(b.profileId || ""), undefined, {
+        numeric: true,
+      }),
+    );
 
-  resultCount.textContent = ranked.length;
-  resultsList.innerHTML = ranked.map(renderProfile).join("");
-  emptyState.hidden = ranked.length > 0;
+  resultCount.textContent = filtered.length;
+  resultsList.innerHTML = filtered.map(renderProfile).join("");
+  emptyState.hidden = filtered.length > 0;
+}
+
+function populateDynamicFilters() {
+  populateSelect(controls.caste, activeProfiles.map((profile) => profile.caste));
+  populateSelect(
+    controls.familyDistrict,
+    activeProfiles.map((profile) => profile.familyDistrict),
+  );
+  populateSelect(
+    controls.postingDistrict,
+    activeProfiles.map((profile) => profile.postingDistrict),
+  );
+}
+
+function populateSelect(select, values) {
+  const selected = select.value;
+  const label = select.options[0].textContent;
+  const unique = new Map();
+
+  values.forEach((value) => {
+    const cleanValue = String(value || "").trim();
+    const key = normalize(cleanValue);
+    if (key && !unique.has(key)) unique.set(key, cleanValue);
+  });
+
+  const options = Array.from(unique.values()).sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+
+  select.innerHTML = `<option value="">${escapeHtml(label)}</option>`;
+  options.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+
+  if (options.includes(selected)) select.value = selected;
 }
 
 async function loadProfiles() {
   if (!isSupabaseConfigured()) {
-    dataStatus.textContent = "Showing sample local profiles until Supabase is configured.";
+    dataStatus.textContent = "Supabase is not configured.";
     render();
     return;
   }
 
   try {
-    const supabaseProfiles = await fetchProfilesFromSupabase();
-    activeProfiles = supabaseProfiles;
-    dataStatus.textContent = supabaseProfiles.length
-      ? "Showing approved profiles from Supabase. Results are sorted by strongest match."
-      : "Connected to Supabase. No approved profiles are visible yet.";
+    const session = await requireSession();
+    if (!session) return;
+
+    userEmail.textContent = session.user.email || "Signed in";
+    activeProfiles = await fetchProfilesFromSupabase(session.access_token);
+    dataStatus.textContent = activeProfiles.length
+      ? "Showing approved profiles from Supabase."
+      : "No approved profiles are currently available.";
   } catch (error) {
     console.warn(error);
     activeProfiles = [];
-    dataStatus.textContent = "Supabase is configured, but the site cannot read profiles yet. Check table permissions and approved rows.";
+    dataStatus.textContent =
+      "The profiles could not be loaded. Refresh the page or log in again.";
   }
 
+  populateDynamicFilters();
   render();
 }
 
@@ -273,9 +303,20 @@ Object.values(controls).forEach((control) => {
 
 resetBtn.addEventListener("click", () => {
   Object.values(controls).forEach((control) => {
-    control.value = control.id === "gotraMode" ? "any" : "";
+    control.value = "";
   });
   render();
+});
+
+logoutBtn.addEventListener("click", async () => {
+  logoutBtn.disabled = true;
+  logoutBtn.textContent = "Logging out…";
+  await supabase.auth.signOut();
+  window.location.replace("/login.html");
+});
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") window.location.replace("/login.html");
 });
 
 loadProfiles();

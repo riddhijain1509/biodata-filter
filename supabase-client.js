@@ -4,45 +4,37 @@ const columns = [
   "id",
   "profile_id",
   "full_name",
-  "birth_year",
-  "age",
-  "gotra",
-  "surname",
-  "district",
-  "current_city",
-  "state",
-  "education_raw",
-  "education_level",
-  "education_stream",
-  "profession_raw",
-  "profession_category",
+  "gender",
+  "date_of_birth",
   "height_text",
   "height_cm",
+  "income_text",
+  "income_lpa",
+  "family_district",
+  "posting_district",
+  "caste",
+  "occupation_category",
+  "manglik",
   "pdf_url",
   "approved",
 ].join(",");
 
 export function isSupabaseConfigured() {
-  return Boolean(config.supabaseUrl && config.supabaseAnonKey);
+  return Boolean(config.supabaseUrl && config.supabasePublishableKey);
 }
 
-export async function fetchProfilesFromSupabase() {
-  if (!isSupabaseConfigured()) {
-    return [];
-  }
+export async function fetchProfilesFromSupabase(accessToken = "") {
+  if (!isSupabaseConfigured()) return [];
 
   const url = new URL(`${config.supabaseUrl}/rest/v1/biodata_profiles`);
   url.searchParams.set("select", columns);
   url.searchParams.set("approved", "eq.true");
-  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("order", "profile_id.asc");
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      apikey: config.supabaseAnonKey,
-      Authorization: `Bearer ${config.supabaseAnonKey}`,
-    },
-  });
+  const headers = { apikey: config.supabasePublishableKey };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
+  const response = await fetch(url.toString(), { headers });
   if (!response.ok) {
     throw new Error(`Supabase fetch failed: ${response.status}`);
   }
@@ -52,22 +44,27 @@ export async function fetchProfilesFromSupabase() {
 }
 
 function mapSupabaseProfile(row) {
-  const location = [row.current_city, row.district, row.state].filter(Boolean).join(", ");
-
   return {
-    sno: row.profile_id || row.id,
-    name: row.full_name,
-    birthYear: row.birth_year,
-    age: row.age,
-    surname: row.surname || "",
-    gotra: row.gotra || "",
-    education: row.education_raw || "",
-    educationLevel: row.education_level || "",
-    educationStream: row.education_stream || "",
-    profession: row.profession_raw || row.profession_category || "",
+    id: row.id,
+    profileId: row.profile_id || row.id,
+    name: row.full_name || "Profile",
+    gender: row.gender || "",
+    dateOfBirth: row.date_of_birth || "",
     heightText: row.height_text || "",
-    heightCm: row.height_cm || null,
-    district: location || row.district || "",
+    heightCm: toNullableNumber(row.height_cm),
+    incomeText: row.income_text || "",
+    incomeLpa: toNullableNumber(row.income_lpa),
+    familyDistrict: row.family_district || "",
+    postingDistrict: row.posting_district || "",
+    caste: row.caste || "",
+    occupation: row.occupation_category || "",
+    manglik: typeof row.manglik === "boolean" ? row.manglik : null,
     pdfUrl: row.pdf_url || "",
   };
+}
+
+function toNullableNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
