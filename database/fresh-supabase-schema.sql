@@ -21,6 +21,7 @@ create table if not exists public.biodata_profiles (
   family_district text,
   posting_district text,
   caste text,
+  education text,
   occupation_category text
     check (
       occupation_category is null
@@ -60,6 +61,9 @@ create index if not exists biodata_profiles_income_idx
 
 create index if not exists biodata_profiles_occupation_idx
   on public.biodata_profiles (occupation_category);
+
+create index if not exists biodata_profiles_education_idx
+  on public.biodata_profiles (education);
 
 create index if not exists biodata_profiles_caste_idx
   on public.biodata_profiles (caste);

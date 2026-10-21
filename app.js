@@ -1,4 +1,3 @@
-import { requireSession, supabase } from "./auth-client.js?v=20261019-auth";
 import {
   fetchProfilesFromSupabase,
   isSupabaseConfigured,
@@ -13,11 +12,17 @@ const controls = {
   minHeight: document.querySelector("#minHeight"),
   maxHeight: document.querySelector("#maxHeight"),
   occupation: document.querySelector("#occupation"),
+  education: document.querySelector("#education"),
   incomeBand: document.querySelector("#incomeBand"),
   caste: document.querySelector("#caste"),
   manglik: document.querySelector("#manglik"),
   familyDistrict: document.querySelector("#familyDistrict"),
   postingDistrict: document.querySelector("#postingDistrict"),
+};
+
+const districtSuggestions = {
+  family: document.querySelector("#familyDistrictOptions"),
+  posting: document.querySelector("#postingDistrictOptions"),
 };
 
 const resultCount = document.querySelector("#resultCount");
@@ -86,6 +91,7 @@ function getFilters() {
     minHeight: toNullableNumber(controls.minHeight.value),
     maxHeight: toNullableNumber(controls.maxHeight.value),
     occupation: controls.occupation.value,
+    education: controls.education.value,
     incomeBand: controls.incomeBand.value,
     caste: controls.caste.value,
     manglik: controls.manglik.value,
@@ -108,6 +114,7 @@ function matchesProfile(profile, filters) {
       profile.name,
       profile.caste,
       profile.occupation,
+      profile.education,
       profile.familyDistrict,
       profile.postingDistrict,
     ].join(" "),
@@ -138,26 +145,32 @@ function matchesProfile(profile, filters) {
   ) {
     return false;
   }
+  if (
+    filters.education &&
+    normalize(profile.education) !== normalize(filters.education)
+  ) {
+    return false;
+  }
   if (!matchesIncomeBand(profile.incomeLpa, filters.incomeBand)) return false;
   if (filters.caste && normalize(profile.caste) !== normalize(filters.caste)) {
     return false;
   }
   if (filters.manglik === "yes" && profile.manglik !== true) return false;
   if (filters.manglik === "no" && profile.manglik !== false) return false;
-  if (
-    filters.familyDistrict &&
-    normalize(profile.familyDistrict) !== normalize(filters.familyDistrict)
-  ) {
+  if (!matchesDistrictQuery(profile.familyDistrict, filters.familyDistrict)) {
     return false;
   }
-  if (
-    filters.postingDistrict &&
-    normalize(profile.postingDistrict) !== normalize(filters.postingDistrict)
-  ) {
+  if (!matchesDistrictQuery(profile.postingDistrict, filters.postingDistrict)) {
     return false;
   }
 
   return true;
+}
+
+function matchesDistrictQuery(value, query) {
+  const normalizedQuery = normalize(query);
+  if (!normalizedQuery) return true;
+  return normalize(value).includes(normalizedQuery);
 }
 
 function matchesIncomeBand(incomeLpa, band) {
@@ -171,8 +184,9 @@ function matchesIncomeBand(incomeLpa, band) {
 
 function renderProfile(profile) {
   const age = calculateAge(profile.dateOfBirth);
-  const pdfAction = profile.pdfUrl
-    ? `<a class="pdf-link" href="${escapeHtml(profile.pdfUrl)}" target="_blank" rel="noreferrer">View biodata PDF</a>`
+  const previewUrl = toDrivePreviewUrl(profile.pdfUrl);
+  const pdfAction = previewUrl
+    ? `<a class="pdf-link" href="${escapeHtml(previewUrl)}" target="_blank" rel="noreferrer">View biodata PDF</a>`
     : `<span class="missing-pdf">PDF link pending</span>`;
 
   return `
@@ -193,6 +207,7 @@ function renderProfile(profile) {
         ${renderDetail("Height", profile.heightText || (profile.heightCm ? `${profile.heightCm} cm` : "Not listed"))}
         ${renderDetail("Income", profile.incomeText || (profile.incomeLpa !== null ? `${profile.incomeLpa} LPA` : "Not listed"))}
         ${renderDetail("Occupation", profile.occupation || "Not listed")}
+        ${renderDetail("Education", profile.education || "Not listed")}
         ${renderDetail("Caste", profile.caste || "Not listed")}
         ${renderDetail("Manglik", profile.manglik === null ? "Not listed" : profile.manglik ? "Yes" : "No")}
         ${renderDetail("Family district", profile.familyDistrict || "Not listed")}
@@ -205,6 +220,20 @@ function renderProfile(profile) {
       </div>
     </article>
   `;
+}
+
+function toDrivePreviewUrl(value) {
+  const url = String(value || "").trim();
+  const fileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/i);
+  if (fileMatch) return `https://drive.google.com/file/d/${fileMatch[1]}/preview`;
+  try {
+    const parsed = new URL(url);
+    const id = parsed.searchParams.get("id");
+    if (id && parsed.hostname.includes("drive.google.com")) {
+      return `https://drive.google.com/file/d/${id}/preview`;
+    }
+  } catch {}
+  return url;
 }
 
 function renderDetail(label, value) {
@@ -232,15 +261,32 @@ function render() {
 }
 
 function populateDynamicFilters() {
+  populateSelect(controls.education, activeProfiles.map((profile) => profile.education));
   populateSelect(controls.caste, activeProfiles.map((profile) => profile.caste));
-  populateSelect(
-    controls.familyDistrict,
+  populateDatalist(
+    districtSuggestions.family,
     activeProfiles.map((profile) => profile.familyDistrict),
   );
-  populateSelect(
-    controls.postingDistrict,
+  populateDatalist(
+    districtSuggestions.posting,
     activeProfiles.map((profile) => profile.postingDistrict),
   );
+}
+
+function populateDatalist(datalist, values) {
+  if (!datalist) return;
+  const unique = new Map();
+
+  values.forEach((value) => {
+    const cleanValue = String(value || "").trim();
+    const key = normalize(cleanValue);
+    if (key && !unique.has(key)) unique.set(key, cleanValue);
+  });
+
+  datalist.innerHTML = Array.from(unique.values())
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+    .map((value) => `<option value="${escapeHtml(value)}"></option>`)
+    .join("");
 }
 
 function populateSelect(select, values) {
@@ -277,11 +323,8 @@ async function loadProfiles() {
   }
 
   try {
-    const session = await requireSession();
-    if (!session) return;
-
-    userEmail.textContent = session.user.email || "Signed in";
-    activeProfiles = await fetchProfilesFromSupabase(session.access_token);
+    userEmail.textContent = "Guest access";
+    activeProfiles = await fetchProfilesFromSupabase();
     dataStatus.textContent = activeProfiles.length
       ? "Showing approved profiles from Supabase."
       : "No approved profiles are currently available.";
@@ -308,15 +351,6 @@ resetBtn.addEventListener("click", () => {
   render();
 });
 
-logoutBtn.addEventListener("click", async () => {
-  logoutBtn.disabled = true;
-  logoutBtn.textContent = "Logging out…";
-  await supabase.auth.signOut();
-  window.location.replace(new URL("./login.html?next=./search.html", window.location.href).href);
-});
-
-supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") window.location.replace(new URL("./login.html?next=./search.html", window.location.href).href);
-});
+logoutBtn?.remove();
 
 loadProfiles();

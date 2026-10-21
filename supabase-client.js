@@ -14,6 +14,7 @@ const columns = [
   "posting_district",
   "caste",
   "occupation_category",
+  "education",
   "manglik",
   "pdf_url",
   "approved",
@@ -43,6 +44,31 @@ export async function fetchProfilesFromSupabase(accessToken = "") {
   return rows.map(mapSupabaseProfile);
 }
 
+export async function recordVisitor({ firstName, lastName, phoneNumber }) {
+  if (!isSupabaseConfigured()) throw new Error("Supabase is not configured.");
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/visitor_signups`, {
+    method: "POST",
+    headers: {
+      apikey: config.supabasePublishableKey,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify({
+      first_name: firstName,
+      last_name: lastName,
+      phone_number: phoneNumber,
+    }),
+  });
+  if (!response.ok) {
+    let message = "Could not save your details.";
+    try {
+      const body = await response.json();
+      message = body.message || body.hint || message;
+    } catch {}
+    throw new Error(message);
+  }
+}
+
 function mapSupabaseProfile(row) {
   return {
     id: row.id,
@@ -58,6 +84,7 @@ function mapSupabaseProfile(row) {
     postingDistrict: row.posting_district || "",
     caste: row.caste || "",
     occupation: row.occupation_category || "",
+    education: row.education || "",
     manglik: typeof row.manglik === "boolean" ? row.manglik : null,
     pdfUrl: row.pdf_url || "",
   };
