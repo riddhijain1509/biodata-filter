@@ -11,7 +11,7 @@
     <main class="shell">
       <header class="topbar" aria-label="GlobalRistey">
         <a class="brand" href="./" aria-label="GlobalRistey home"><div><strong>GlobalRistey</strong></div></a>
-        <div class="account-actions"><span id="userEmail" class="account-email">Guest access</span></div>
+        <div class="account-actions" aria-hidden="true"></div>
       </header>
       <section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">Your private search space</p><h1 id="page-title">Find a profile that fits your family’s preferences.</h1><div class="hero-metrics" aria-label="Available filters"><span>Age and height</span><span>Occupation and income</span><span>Caste and Manglik</span><span>Family and posting district</span></div></div><div class="summary-card"><span id="resultCount">0</span><small>matching profiles</small></div></section>
       <section class="workspace">
@@ -36,7 +36,7 @@
             <datalist id="postingDistrictOptions"></datalist>
           </div>
         </aside>
-        <section class="results" aria-live="polite"><div class="results-head"><div><p class="eyebrow">Approved profiles</p><h2>Profiles that may be a good fit</h2><p id="dataStatus">Loading profile data…</p></div><span class="data-badge">Supabase</span></div><div id="resultsList" class="results-list"></div><div id="emptyState" class="empty-state" hidden>No profiles match these filters. Try widening a range or clearing one preference.</div></section>
+        <section class="results" aria-live="polite"><div class="results-head"><div><p class="eyebrow">Approved profiles</p><h2>Profiles that may be a good fit</h2><p id="dataStatus">Loading profile data…</p></div></div><div id="resultsList" class="results-list"></div><div id="emptyState" class="empty-state" hidden>No profiles match these filters. Try widening a range or clearing one preference.</div></section>
       </section>
     </main>
     <script src="app.js" type="module"></script>

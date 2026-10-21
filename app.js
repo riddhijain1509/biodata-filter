@@ -30,7 +30,6 @@ const resultsList = document.querySelector("#resultsList");
 const emptyState = document.querySelector("#emptyState");
 const resetBtn = document.querySelector("#resetBtn");
 const dataStatus = document.querySelector("#dataStatus");
-const userEmail = document.querySelector("#userEmail");
 const logoutBtn = document.querySelector("#logoutBtn");
 
 function normalize(value) {
@@ -121,42 +120,56 @@ function matchesProfile(profile, filters) {
   );
 
   if (filters.keyword && !searchable.includes(filters.keyword)) return false;
-  if (filters.minAge !== null && (age === null || age < filters.minAge)) {
+  if (filters.minAge !== null && age !== null && age < filters.minAge) {
     return false;
   }
-  if (filters.maxAge !== null && (age === null || age > filters.maxAge)) {
+  if (filters.maxAge !== null && age !== null && age > filters.maxAge) {
     return false;
   }
   if (
     filters.minHeight !== null &&
-    (profile.heightCm === null || profile.heightCm < filters.minHeight)
+    profile.heightCm !== null && profile.heightCm < filters.minHeight
   ) {
     return false;
   }
   if (
     filters.maxHeight !== null &&
-    (profile.heightCm === null || profile.heightCm > filters.maxHeight)
+    profile.heightCm !== null && profile.heightCm > filters.maxHeight
   ) {
     return false;
   }
   if (
     filters.occupation &&
+    profile.occupation &&
     normalize(profile.occupation) !== normalize(filters.occupation)
   ) {
     return false;
   }
   if (
     filters.education &&
+    profile.education &&
     normalize(profile.education) !== normalize(filters.education)
   ) {
     return false;
   }
   if (!matchesIncomeBand(profile.incomeLpa, filters.incomeBand)) return false;
-  if (filters.caste && normalize(profile.caste) !== normalize(filters.caste)) {
+  if (
+    filters.caste &&
+    profile.caste &&
+    normalize(profile.caste) !== normalize(filters.caste)
+  ) {
     return false;
   }
-  if (filters.manglik === "yes" && profile.manglik !== true) return false;
-  if (filters.manglik === "no" && profile.manglik !== false) return false;
+  if (
+    filters.manglik === "yes" &&
+    profile.manglik !== null &&
+    profile.manglik !== true
+  ) return false;
+  if (
+    filters.manglik === "no" &&
+    profile.manglik !== null &&
+    profile.manglik !== false
+  ) return false;
   if (!matchesDistrictQuery(profile.familyDistrict, filters.familyDistrict)) {
     return false;
   }
@@ -170,12 +183,13 @@ function matchesProfile(profile, filters) {
 function matchesDistrictQuery(value, query) {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return true;
+  if (!normalize(value)) return true;
   return normalize(value).includes(normalizedQuery);
 }
 
 function matchesIncomeBand(incomeLpa, band) {
   if (!band) return true;
-  if (incomeLpa === null || incomeLpa === undefined) return false;
+  if (incomeLpa === null || incomeLpa === undefined) return true;
   if (band === "under15") return incomeLpa < 15;
   if (band === "15to25") return incomeLpa >= 15 && incomeLpa <= 25;
   if (band === "over25") return incomeLpa > 25;
@@ -317,22 +331,21 @@ function populateSelect(select, values) {
 
 async function loadProfiles() {
   if (!isSupabaseConfigured()) {
-    dataStatus.textContent = "Supabase is not configured.";
+    dataStatus.textContent = "Profile data is not configured.";
     render();
     return;
   }
 
   try {
-    userEmail.textContent = "Guest access";
     activeProfiles = await fetchProfilesFromSupabase();
     dataStatus.textContent = activeProfiles.length
-      ? "Showing approved profiles from Supabase."
+      ? "Showing approved profiles."
       : "No approved profiles are currently available.";
   } catch (error) {
     console.warn(error);
     activeProfiles = [];
     dataStatus.textContent =
-      "The profiles could not be loaded. Refresh the page or log in again.";
+      "The profiles could not be loaded. Refresh the page and try again.";
   }
 
   populateDynamicFilters();
