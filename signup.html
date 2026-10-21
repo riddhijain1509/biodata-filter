@@ -16,34 +16,30 @@
       <section class="auth-card" aria-labelledby="auth-title">
         <p class="eyebrow">Create access</p>
         <h1 id="auth-title">Sign up</h1>
-        <p class="auth-intro">Your mobile number belongs to your website account. It is never added to a biodata profile.</p>
+        <p class="auth-intro">Enter your details to explore approved biodata profiles. Your phone is not added to any biodata profile.</p>
 
         <form id="authForm" class="auth-form">
           <label>
-            Email
-            <input id="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+            First name
+            <input id="firstName" type="text" autocomplete="given-name" required placeholder="First name" />
+          </label>
+          <label>
+            Last name
+            <input id="lastName" type="text" autocomplete="family-name" required placeholder="Last name" />
           </label>
           <label>
             Mobile number
             <input id="mobileNumber" type="tel" autocomplete="tel" required inputmode="tel" placeholder="+91 98765 43210" />
           </label>
-          <label>
-            Password
-            <input id="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters" />
-          </label>
-          <label>
-            Confirm password
-            <input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Repeat your password" />
-          </label>
           <div id="authStatus" class="auth-status" role="status" hidden></div>
-          <button class="auth-submit" type="submit">Create account</button>
+          <button class="auth-submit" type="submit">Continue to profiles</button>
         </form>
 
         <div class="auth-links single-line">
-          <span>Already registered? <a href="./login.html">Log in</a></span>
+          <span>Your details are used only to provide access to the profile search.</span>
         </div>
       </section>
     </main>
-    <script src="auth-page.js?v=20261019-auth" type="module"></script>
+    <script src="auth-page.js?v=20261021-visitor-form" type="module"></script>
   </body>
 </html>
