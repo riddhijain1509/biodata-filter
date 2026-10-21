@@ -11,6 +11,7 @@ const controls = {
   maxAge: document.querySelector("#maxAge"),
   minHeight: document.querySelector("#minHeight"),
   maxHeight: document.querySelector("#maxHeight"),
+  gender: document.querySelector("#gender"),
   occupation: document.querySelector("#occupation"),
   education: document.querySelector("#education"),
   incomeBand: document.querySelector("#incomeBand"),
@@ -89,6 +90,7 @@ function getFilters() {
     maxAge: toNullableNumber(controls.maxAge.value),
     minHeight: toNullableNumber(controls.minHeight.value),
     maxHeight: toNullableNumber(controls.maxHeight.value),
+    gender: controls.gender.value,
     occupation: controls.occupation.value,
     education: controls.education.value,
     incomeBand: controls.incomeBand.value,
@@ -111,6 +113,7 @@ function matchesProfile(profile, filters) {
     [
       profile.profileId,
       profile.name,
+      profile.gender,
       profile.caste,
       profile.occupation,
       profile.education,
@@ -135,6 +138,13 @@ function matchesProfile(profile, filters) {
   if (
     filters.maxHeight !== null &&
     profile.heightCm !== null && profile.heightCm > filters.maxHeight
+  ) {
+    return false;
+  }
+  if (
+    filters.gender &&
+    profile.gender &&
+    normalizeGender(profile.gender) !== normalizeGender(filters.gender)
   ) {
     return false;
   }
@@ -187,6 +197,30 @@ function matchesDistrictQuery(value, query) {
   return normalize(value).includes(normalizedQuery);
 }
 
+function normalizeGender(value) {
+  const gender = normalize(value);
+  if (["girl", "female", "woman", "women"].includes(gender)) return "female";
+  if (["boy", "male", "man", "men"].includes(gender)) return "male";
+  return gender;
+}
+
+function formatHeight(profile) {
+  const raw = String(profile.heightText || "").trim();
+  const feetInches = raw.match(/^(\d+)(?:\.(\d{1,2}))?$/);
+  if (feetInches) {
+    return `${feetInches[1]} ft ${Number(feetInches[2] || 0)} in`;
+  }
+  if (raw) return raw;
+  if (profile.heightCm !== null && profile.heightCm !== undefined) {
+    const totalInches = profile.heightCm / 2.54;
+    const feet = Math.floor(totalInches / 12);
+    const inches = Math.round(totalInches - feet * 12);
+    if (inches === 12) return `${feet + 1} ft 0 in`;
+    return `${feet} ft ${inches} in`;
+  }
+  return "Not listed";
+}
+
 function matchesIncomeBand(incomeLpa, band) {
   if (!band) return true;
   if (incomeLpa === null || incomeLpa === undefined) return true;
@@ -218,7 +252,7 @@ function renderProfile(profile) {
 
       <div class="profile-detail-grid">
         ${renderDetail("Age", age === null ? "Not listed" : `${age} years`)}
-        ${renderDetail("Height", profile.heightText || (profile.heightCm ? `${profile.heightCm} cm` : "Not listed"))}
+        ${renderDetail("Height", formatHeight(profile))}
         ${renderDetail("Income", profile.incomeText || (profile.incomeLpa !== null ? `${profile.incomeLpa} LPA` : "Not listed"))}
         ${renderDetail("Occupation", profile.occupation || "Not listed")}
         ${renderDetail("Education", profile.education || "Not listed")}
