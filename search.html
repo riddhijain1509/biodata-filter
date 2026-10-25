@@ -13,16 +13,14 @@
         <a class="brand" href="./" aria-label="GlobalRistey home"><div><strong>GlobalRistey</strong></div></a>
         <div class="account-actions" aria-hidden="true"></div>
       </header>
-      <section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">Your private search space</p><h1 id="page-title">Find a profile that fits your family’s preferences.</h1><div class="hero-metrics" aria-label="Available filters"><span>Age and height</span><span>Occupation and income</span><span>Caste and Manglik</span><span>Family and posting district</span></div></div><div class="summary-card"><span id="resultCount">0</span><small>matching profiles</small></div></section>
       <section class="workspace">
         <aside class="filters" aria-label="Profile filters">
-          <div class="filter-header"><div><p class="eyebrow">Refine results</p><h2>Find your preferences</h2></div><button id="resetBtn" type="button">Reset</button></div>
+          <div class="filter-header"><div><p class="eyebrow">Refine results</p><h2>Find your preferences</h2></div><div class="filter-count"><span id="resultCount">0</span><small>matching profiles</small></div><button id="resetBtn" type="button">Reset</button></div>
           <div class="filter-content">
             <div class="filter-section-title">Quick search</div>
             <label class="wide-filter">Name or profile ID<input id="keyword" type="search" placeholder="Search profiles" /></label>
             <div class="filter-section-title">Age and height</div>
-            <div class="range-row"><label>Min age<input id="minAge" type="number" min="18" max="80" placeholder="Any" /></label><label>Max age<input id="maxAge" type="number" min="18" max="80" placeholder="Any" /></label></div>
-            <div class="range-row"><label>Min height<input id="minHeight" type="number" min="100" max="250" placeholder="cm" /></label><label>Max height<input id="maxHeight" type="number" min="100" max="250" placeholder="cm" /></label></div>
+            <div class="age-height-row"><label>Age up to<select id="maxAge"><option value="">Any age</option></select></label><label class="height-field">Min height<span class="height-parts"><select id="minHeightFeet" aria-label="Minimum height feet"><option value="">ft</option><option value="4">4 ft</option><option value="5">5 ft</option><option value="6">6 ft</option><option value="7">7 ft</option></select><select id="minHeightInches" aria-label="Minimum height inches"><option value="">in</option><option value="0">0 in</option><option value="1">1 in</option><option value="2">2 in</option><option value="3">3 in</option><option value="4">4 in</option><option value="5">5 in</option><option value="6">6 in</option><option value="7">7 in</option><option value="8">8 in</option><option value="9">9 in</option><option value="10">10 in</option><option value="11">11 in</option></select></span></label><label class="height-field">Max height<span class="height-parts"><select id="maxHeightFeet" aria-label="Maximum height feet"><option value="">ft</option><option value="4">4 ft</option><option value="5">5 ft</option><option value="6">6 ft</option><option value="7">7 ft</option></select><select id="maxHeightInches" aria-label="Maximum height inches"><option value="">in</option><option value="0">0 in</option><option value="1">1 in</option><option value="2">2 in</option><option value="3">3 in</option><option value="4">4 in</option><option value="5">5 in</option><option value="6">6 in</option><option value="7">7 in</option><option value="8">8 in</option><option value="9">9 in</option><option value="10">10 in</option><option value="11">11 in</option></select></span></label></div>
             <div class="filter-section-title">Work and education</div>
             <label>Gender<select id="gender"><option value="">Any gender</option><option value="Female">Female</option><option value="Male">Male</option></select></label>
             <label>Occupation<select id="occupation"><option value="">Any occupation</option><option value="Engineering">Engineering</option><option value="Healthcare">Healthcare</option><option value="Finance">Finance</option><option value="Business">Business</option><option value="Management">Management</option><option value="Government">Government</option><option value="Teaching">Teaching</option><option value="Legal">Legal</option><option value="Marketing">Marketing</option><option value="Not Working">Not Working</option><option value="Other">Other</option></select></label>
@@ -37,9 +35,10 @@
             <datalist id="postingDistrictOptions"></datalist>
           </div>
         </aside>
-        <section class="results" aria-live="polite"><div class="results-head"><div><p class="eyebrow">Approved profiles</p><h2>Profiles that may be a good fit</h2><p id="dataStatus">Loading profile data…</p></div></div><div id="resultsList" class="results-list"></div><div id="emptyState" class="empty-state" hidden>No profiles match these filters. Try widening a range or clearing one preference.</div></section>
+        <section class="results" aria-live="polite"><div class="results-head"><p class="eyebrow">Approved profiles</p></div><div id="resultsList" class="results-list"></div><div id="emptyState" class="empty-state" hidden>No profiles match these filters. Try widening a range or clearing one preference.</div></section>
       </section>
     </main>
-    <script src="app.js" type="module"></script>
+    <script src="access-gate.js?v=20261025"></script>
+    <script src="app.js?v=20261025-6" type="module"></script>
   </body>
 </html>

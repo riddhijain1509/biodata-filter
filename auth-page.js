@@ -5,6 +5,7 @@ const page = document.body.dataset.authPage;
 const form = document.querySelector("#authForm");
 const status = document.querySelector("#authStatus");
 const submitButton = form?.querySelector('button[type="submit"]');
+const VISITOR_ACCESS_KEY = "globalristey_visitor_access";
 
 initialize();
 
@@ -27,10 +28,12 @@ form?.addEventListener("submit", async (event) => {
 async function signup() {
   const firstName = fieldValue("firstName");
   const lastName = fieldValue("lastName");
-  const phone = normalizeMobileNumber(fieldValue("mobileNumber"));
+  const countryCode = fieldValue("countryCode") || "+91";
+  const phone = normalizeMobileNumber(`${countryCode}${fieldValue("mobileNumber")}`);
 
   if (!firstName || !lastName) throw new Error("Enter your first and last name.");
   await recordVisitor({ firstName, lastName, phoneNumber: phone });
+  window.localStorage.setItem(VISITOR_ACCESS_KEY, "true");
   form.reset();
   showStatus("Thank you. Opening profiles…", "success");
   window.setTimeout(() => window.location.replace(new URL("./search.html", window.location.href).href), 250);

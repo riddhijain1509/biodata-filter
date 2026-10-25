@@ -614,6 +614,9 @@ button:hover,
   margin: 0;
 }
 
+.phone-row { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 8px; margin-top: 8px; }
+.phone-row select, .phone-row input { width: 100%; box-sizing: border-box; }
+
 .auth-submit {
   width: 100%;
   min-height: 46px;
@@ -1073,6 +1076,48 @@ input::placeholder { color: #7a5b47; opacity: 1; }
 .feature-strip h2 { color: #442d1c; }
 .feature-strip p { color: #6e482d; }
 
+.filters .filter-header { position: sticky; top: 0; z-index: 4; }
+.filter-count { display: flex; flex: 0 0 142px; align-items: center; justify-content: space-between; gap: 12px; margin-left: auto; padding: 10px 12px; border: 1px solid #c59f6b; border-radius: 14px; background: #f3e5c7 url("assets/cream-card.png") center / cover no-repeat; box-shadow: 0 8px 18px rgba(68, 45, 28, .16); color: #6e482d; text-align: right; }
+.filter-count span { color: #743014; font: 700 36px/.9 Georgia, serif; }
+.filter-count small { max-width: 78px; font: 700 10px/1.1 Arial, sans-serif; letter-spacing: .03em; text-transform: uppercase; }
+.height-range-row { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+.age-range-row { grid-column: 1 / -1 !important; }
+.age-range-row > label { max-width: 180px; }
+.age-height-row { display: grid; grid-column: 1 / -1; grid-template-columns: .8fr 1.2fr 1.2fr; gap: 10px; }
+.age-height-row > label { min-width: 0; }
+.height-field { min-width: 0; }
+.height-parts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.height-parts select { min-width: 0; padding-left: 10px; padding-right: 24px; }
+@media (max-width: 760px) {
+  .filter-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+  .filter-header > div:first-child { grid-column: 1 / -1; min-width: 0; }
+  .filter-header .filter-count { grid-column: 1; grid-row: 2; justify-self: start; width: 180px; box-sizing: border-box; margin-left: 0; }
+  .filter-header > button { grid-column: 2; grid-row: 2; justify-self: end; white-space: nowrap; }
+  .filter-count { flex-basis: 180px; padding: 9px 14px; }
+  .filter-count span { font-size: 32px; }
+  .filter-count small { max-width: 80px; }
+}
+
+.results-head .results-summary { flex: 0 0 178px; min-width: 0; padding: 11px 14px; border-color: #c59f6b; border-radius: 14px; background: #f3e5c7 url("assets/cream-card.png") center / cover no-repeat; box-shadow: 0 7px 16px rgba(68, 45, 28, .12); }
+.results-summary span { font-size: 38px; color: #743014; }
+.results-summary small { color: #6e482d; }
+@media (max-width: 760px) {
+  .results-head { flex-direction: column; }
+  .results-head .results-summary { flex: 0 0 auto; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; }
+  .results-summary span { font-size: 32px; }
+  .results-summary small { max-width: none; text-align: right; }
+}
+
+.intro.compact-summary { position: sticky; top: 14px; z-index: 5; display: flex; justify-content: flex-end; min-height: 0; margin: 18px 0 8px; padding: 0; border: 0; background: transparent; box-shadow: none; pointer-events: none; }
+.compact-summary .summary-card { width: 220px; margin: 0; padding: 13px 18px; border: 1px solid #c59f6b; border-radius: 16px; background: #f3e5c7 url("assets/cream-card.png") center / cover no-repeat; box-shadow: 0 10px 24px rgba(48, 27, 24, .24); pointer-events: auto; }
+.compact-summary .summary-card span { color: #743014; }
+.compact-summary .summary-card small { color: #6e482d; }
+@media (max-width: 760px) {
+  .intro.compact-summary { top: 10px; margin: 12px 0 5px; }
+  .compact-summary .summary-card { width: 185px; padding: 10px 14px; }
+  .compact-summary .summary-card span { font-size: 34px; }
+}
+
 /* Compact landing-page filter preview */
 .landing-hero .hero-visual { display: block; min-height: 430px; }
 .landing-hero .hero-visual > .filter-demo { display: block; }
@@ -1115,7 +1160,7 @@ input::placeholder { color: #7a5b47; opacity: 1; }
   .landing-nav { padding: 0 2px; }
   .landing-actions { gap: 0; }
   .landing-actions .button-small { padding: 9px 12px; }
-  .landing-hero { padding: 42px 0 24px; }
+  .landing-hero { margin-top: 10px; padding: 30px 0 24px; }
   .hero-copy h1 { margin-bottom: 16px; }
   .landing-lede { margin-bottom: 20px; }
   .landing-hero .hero-visual { min-height: 310px; margin-top: 26px; }

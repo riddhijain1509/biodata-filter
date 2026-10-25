@@ -29,7 +29,7 @@
           </label>
           <label>
             Mobile number
-            <input id="mobileNumber" type="tel" autocomplete="tel" required inputmode="tel" placeholder="+91 98765 43210" />
+            <span class="phone-row"><select id="countryCode" aria-label="Country code"><option value="+91" selected>+91</option><option value="+1">+1</option><option value="+44">+44</option><option value="+61">+61</option><option value="+971">+971</option></select><input id="mobileNumber" type="tel" autocomplete="tel-national" required inputmode="numeric" placeholder="98765 43210" /></span>
           </label>
           <div id="authStatus" class="auth-status" role="status" hidden></div>
           <button class="auth-submit" type="submit">Continue to profiles</button>
@@ -40,6 +40,6 @@
         </div>
       </section>
     </main>
-    <script src="auth-page.js?v=20261021-visitor-form" type="module"></script>
+    <script src="auth-page.js?v=20261025-phone-code" type="module"></script>
   </body>
 </html>

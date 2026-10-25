@@ -7,10 +7,11 @@ let activeProfiles = [];
 
 const controls = {
   keyword: document.querySelector("#keyword"),
-  minAge: document.querySelector("#minAge"),
   maxAge: document.querySelector("#maxAge"),
-  minHeight: document.querySelector("#minHeight"),
-  maxHeight: document.querySelector("#maxHeight"),
+  minHeightFeet: document.querySelector("#minHeightFeet"),
+  minHeightInches: document.querySelector("#minHeightInches"),
+  maxHeightFeet: document.querySelector("#maxHeightFeet"),
+  maxHeightInches: document.querySelector("#maxHeightInches"),
   gender: document.querySelector("#gender"),
   occupation: document.querySelector("#occupation"),
   education: document.querySelector("#education"),
@@ -32,6 +33,10 @@ const emptyState = document.querySelector("#emptyState");
 const resetBtn = document.querySelector("#resetBtn");
 const dataStatus = document.querySelector("#dataStatus");
 const logoutBtn = document.querySelector("#logoutBtn");
+
+function setDataStatus(message) {
+  if (dataStatus) dataStatus.textContent = message;
+}
 
 function normalize(value) {
   return String(value || "")
@@ -86,10 +91,9 @@ function getInitials(name) {
 function getFilters() {
   return {
     keyword: normalize(controls.keyword.value),
-    minAge: toNullableNumber(controls.minAge.value),
     maxAge: toNullableNumber(controls.maxAge.value),
-    minHeight: toNullableNumber(controls.minHeight.value),
-    maxHeight: toNullableNumber(controls.maxHeight.value),
+    minHeight: heightFilterValue(controls.minHeightFeet, controls.minHeightInches),
+    maxHeight: heightFilterValue(controls.maxHeightFeet, controls.maxHeightInches),
     gender: controls.gender.value,
     occupation: controls.occupation.value,
     education: controls.education.value,
@@ -101,10 +105,32 @@ function getFilters() {
   };
 }
 
+function heightFilterValue(feetControl, inchesControl) {
+  const feet = toNullableNumber(feetControl.value);
+  if (feet === null) return null;
+  const inches = toNullableNumber(inchesControl.value) ?? 0;
+  return (feet * 12 + inches) * 2.54;
+}
+
 function toNullableNumber(value) {
   if (value === "" || value === null || value === undefined) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function isMissing(value) {
+  const normalized = normalize(value);
+  return !normalized || ["not listed", "not available", "n a", "na", "none", "unknown"].includes(normalized);
+}
+
+function populateAgeOptions() {
+  const select = controls.maxAge;
+  for (let age = 21; age <= 50; age += 1) {
+    const option = document.createElement("option");
+    option.value = String(age);
+    option.textContent = `${age}`;
+    select.appendChild(option);
+  }
 }
 
 function matchesProfile(profile, filters) {
@@ -123,61 +149,50 @@ function matchesProfile(profile, filters) {
   );
 
   if (filters.keyword && !searchable.includes(filters.keyword)) return false;
-  if (filters.minAge !== null && age !== null && age < filters.minAge) {
-    return false;
-  }
-  if (filters.maxAge !== null && age !== null && age > filters.maxAge) {
-    return false;
-  }
+  if (filters.maxAge !== null && (age === null || age > filters.maxAge)) return false;
   if (
     filters.minHeight !== null &&
-    profile.heightCm !== null && profile.heightCm < filters.minHeight
+    (profile.heightCm === null || profile.heightCm === undefined || profile.heightCm < filters.minHeight)
   ) {
     return false;
   }
   if (
     filters.maxHeight !== null &&
-    profile.heightCm !== null && profile.heightCm > filters.maxHeight
+    (profile.heightCm === null || profile.heightCm === undefined || profile.heightCm > filters.maxHeight)
   ) {
     return false;
   }
   if (
     filters.gender &&
-    profile.gender &&
-    normalizeGender(profile.gender) !== normalizeGender(filters.gender)
+    (isMissing(profile.gender) || normalizeGender(profile.gender) !== normalizeGender(filters.gender))
   ) {
     return false;
   }
   if (
     filters.occupation &&
-    profile.occupation &&
-    normalize(profile.occupation) !== normalize(filters.occupation)
+    (isMissing(profile.occupation) || normalize(profile.occupation) !== normalize(filters.occupation))
   ) {
     return false;
   }
   if (
     filters.education &&
-    profile.education &&
-    normalize(profile.education) !== normalize(filters.education)
+    (isMissing(profile.education) || normalize(profile.education) !== normalize(filters.education))
   ) {
     return false;
   }
   if (!matchesIncomeBand(profile.incomeLpa, filters.incomeBand)) return false;
   if (
     filters.caste &&
-    profile.caste &&
-    normalize(profile.caste) !== normalize(filters.caste)
+    (isMissing(profile.caste) || normalize(profile.caste) !== normalize(filters.caste))
   ) {
     return false;
   }
   if (
     filters.manglik === "yes" &&
-    profile.manglik !== null &&
     profile.manglik !== true
   ) return false;
   if (
     filters.manglik === "no" &&
-    profile.manglik !== null &&
     profile.manglik !== false
   ) return false;
   if (!matchesDistrictQuery(profile.familyDistrict, filters.familyDistrict)) {
@@ -193,7 +208,7 @@ function matchesProfile(profile, filters) {
 function matchesDistrictQuery(value, query) {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return true;
-  if (!normalize(value)) return true;
+  if (isMissing(value)) return false;
   return normalize(value).includes(normalizedQuery);
 }
 
@@ -223,7 +238,7 @@ function formatHeight(profile) {
 
 function matchesIncomeBand(incomeLpa, band) {
   if (!band) return true;
-  if (incomeLpa === null || incomeLpa === undefined) return true;
+  if (incomeLpa === null || incomeLpa === undefined) return false;
   if (band === "under15") return incomeLpa < 15;
   if (band === "15to25") return incomeLpa >= 15 && incomeLpa <= 25;
   if (band === "over25") return incomeLpa > 25;
@@ -365,21 +380,20 @@ function populateSelect(select, values) {
 
 async function loadProfiles() {
   if (!isSupabaseConfigured()) {
-    dataStatus.textContent = "Profile data is not configured.";
+    setDataStatus("Profile data is not configured.");
     render();
     return;
   }
 
   try {
     activeProfiles = await fetchProfilesFromSupabase();
-    dataStatus.textContent = activeProfiles.length
+    setDataStatus(activeProfiles.length
       ? "Showing approved profiles."
-      : "No approved profiles are currently available.";
+      : "No approved profiles are currently available.");
   } catch (error) {
     console.warn(error);
     activeProfiles = [];
-    dataStatus.textContent =
-      "The profiles could not be loaded. Refresh the page and try again.";
+    setDataStatus("The profiles could not be loaded. Refresh the page and try again.");
   }
 
   populateDynamicFilters();
@@ -390,6 +404,8 @@ Object.values(controls).forEach((control) => {
   control.addEventListener("input", render);
   control.addEventListener("change", render);
 });
+
+populateAgeOptions();
 
 resetBtn.addEventListener("click", () => {
   Object.values(controls).forEach((control) => {
