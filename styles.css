@@ -1083,13 +1083,27 @@ input::placeholder { color: #7a5b47; opacity: 1; }
 .height-range-row { grid-template-columns: 1fr 1fr !important; gap: 10px; }
 .age-range-row { grid-column: 1 / -1 !important; }
 .age-range-row > label { max-width: 180px; }
-.age-height-row { display: grid; grid-column: 1 / -1; grid-template-columns: .8fr 1.2fr 1.2fr; gap: 10px; }
+.age-height-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .age-height-row > label { min-width: 0; }
+.age-heading-row { display: grid; grid-column: 1 / -1; grid-template-columns: 1fr 1fr; align-items: end; gap: 10px; }
+.age-heading-row .filter-section-title { margin-left: 10px; margin-right: 0; }
+.age-heading-row > label { margin-left: 10px; margin-right: 10px; }
+.location-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.location-row datalist { display: none; }
+.location-row > label { min-width: 0; margin-left: 10px; margin-right: 10px; }
 .height-field { min-width: 0; }
 .height-parts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
 .height-parts select { min-width: 0; padding-left: 10px; padding-right: 24px; }
 @media (max-width: 760px) {
-  .filter-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+  .filter-content { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+  .filter-content .wide-filter { grid-column: span 1; }
+  .filter-content label { margin-left: 2px; margin-right: 2px; }
+  .filter-content > label { margin-top: 8px; }
+  .age-heading-row { grid-column: 1 / -1; }
+  .age-heading-row .filter-section-title { grid-column: auto; margin-left: 6px; }
+  .filter-content .age-height-row { grid-column: 1 / -1; gap: 3px; }
+  .filter-content .location-row { gap: 3px; }
+  .filter-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
   .filter-header > div:first-child { grid-column: 1 / -1; min-width: 0; }
   .filter-header .filter-count { grid-column: 1; grid-row: 2; justify-self: start; width: 180px; box-sizing: border-box; margin-left: 0; }
   .filter-header > button { grid-column: 2; grid-row: 2; justify-self: end; white-space: nowrap; }

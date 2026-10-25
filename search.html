@@ -18,27 +18,23 @@
           <div class="filter-header"><div><p class="eyebrow">Refine results</p><h2>Find your preferences</h2></div><div class="filter-count"><span id="resultCount">0</span><small>matching profiles</small></div><button id="resetBtn" type="button">Reset</button></div>
           <div class="filter-content">
             <div class="filter-section-title">Quick search</div>
-            <label class="wide-filter">Name or profile ID<input id="keyword" type="search" placeholder="Search profiles" /></label>
+            <label class="wide-filter">Name or ID<input id="keyword" type="search" placeholder="Search name or ID" /></label>
+            <label>Gender<select id="gender"><option value="" selected hidden>Choose</option><option value="Female">Female</option><option value="Male">Male</option></select></label>
+            <label>Caste<select id="caste"><option value="">Any caste</option></select></label>
             <div class="filter-section-title">Age and height</div>
-            <div class="age-height-row"><label>Age up to<select id="maxAge"><option value="">Any age</option></select></label><label class="height-field">Min height<span class="height-parts"><select id="minHeightFeet" aria-label="Minimum height feet"><option value="">ft</option><option value="4">4 ft</option><option value="5">5 ft</option><option value="6">6 ft</option><option value="7">7 ft</option></select><select id="minHeightInches" aria-label="Minimum height inches"><option value="">in</option><option value="0">0 in</option><option value="1">1 in</option><option value="2">2 in</option><option value="3">3 in</option><option value="4">4 in</option><option value="5">5 in</option><option value="6">6 in</option><option value="7">7 in</option><option value="8">8 in</option><option value="9">9 in</option><option value="10">10 in</option><option value="11">11 in</option></select></span></label><label class="height-field">Max height<span class="height-parts"><select id="maxHeightFeet" aria-label="Maximum height feet"><option value="">ft</option><option value="4">4 ft</option><option value="5">5 ft</option><option value="6">6 ft</option><option value="7">7 ft</option></select><select id="maxHeightInches" aria-label="Maximum height inches"><option value="">in</option><option value="0">0 in</option><option value="1">1 in</option><option value="2">2 in</option><option value="3">3 in</option><option value="4">4 in</option><option value="5">5 in</option><option value="6">6 in</option><option value="7">7 in</option><option value="8">8 in</option><option value="9">9 in</option><option value="10">10 in</option><option value="11">11 in</option></select></span></label></div>
+            <div class="age-height-row"><label>Min age<select id="minAge"><option value="">Any</option></select></label><label>Max age<select id="maxAge"><option value="">Any</option></select></label><label>Min height<select id="minHeight" aria-label="Minimum height"><option value="">Any</option><option value="152.4">5 ft</option><option value="154.94">5 ft 1 in</option><option value="157.48">5 ft 2 in</option><option value="160.02">5 ft 3 in</option><option value="162.56">5 ft 4 in</option><option value="165.1">5 ft 5 in</option><option value="167.64">5 ft 6 in</option><option value="170.18">5 ft 7 in</option><option value="172.72">5 ft 8 in</option><option value="175.26">5 ft 9 in</option><option value="177.8">5 ft 10 in</option><option value="180.34">5 ft 11 in</option><option value="182.88">6 ft</option></select></label></div>
             <div class="filter-section-title">Work and education</div>
-            <label>Gender<select id="gender"><option value="">Any gender</option><option value="Female">Female</option><option value="Male">Male</option></select></label>
             <label>Occupation<select id="occupation"><option value="">Any occupation</option><option value="Engineering">Engineering</option><option value="Healthcare">Healthcare</option><option value="Finance">Finance</option><option value="Business">Business</option><option value="Management">Management</option><option value="Government">Government</option><option value="Teaching">Teaching</option><option value="Legal">Legal</option><option value="Marketing">Marketing</option><option value="Not Working">Not Working</option><option value="Other">Other</option></select></label>
             <label>Education<select id="education"><option value="">Any education</option></select></label>
             <label>Annual income<select id="incomeBand"><option value="">Any income</option><option value="under15">Less than 15 LPA</option><option value="15to25">Between 15 and 25 LPA</option><option value="over25">More than 25 LPA</option></select></label>
-            <div class="filter-section-title">Community</div>
-            <label>Caste<select id="caste"><option value="">Any caste</option></select></label><label>Manglik<select id="manglik"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></label>
             <div class="filter-section-title">Location</div>
-            <label>Family district<input id="familyDistrict" list="familyDistrictOptions" type="search" placeholder="Any family district" autocomplete="off" /></label>
-            <datalist id="familyDistrictOptions"></datalist>
-            <label class="last-filter">Posting district<input id="postingDistrict" list="postingDistrictOptions" type="search" placeholder="Any posting district" autocomplete="off" /></label>
-            <datalist id="postingDistrictOptions"></datalist>
+            <div class="location-row"><label>Family district<input id="familyDistrict" list="familyDistrictOptions" type="search" placeholder="Any family district" autocomplete="off" /></label><datalist id="familyDistrictOptions"></datalist><label>Posting district<input id="postingDistrict" list="postingDistrictOptions" type="search" placeholder="Any posting district" autocomplete="off" /></label><datalist id="postingDistrictOptions"></datalist><label class="last-filter">Manglik<select id="manglik"><option value="" selected>No choice</option><option value="yes">Yes</option></select></label></div>
           </div>
         </aside>
         <section class="results" aria-live="polite"><div class="results-head"><p class="eyebrow">Approved profiles</p></div><div id="resultsList" class="results-list"></div><div id="emptyState" class="empty-state" hidden>No profiles match these filters. Try widening a range or clearing one preference.</div></section>
       </section>
     </main>
     <script src="access-gate.js?v=20261025"></script>
-    <script src="app.js?v=20261025-6" type="module"></script>
+    <script src="app.js?v=20261025-7" type="module"></script>
   </body>
 </html>

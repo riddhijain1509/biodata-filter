@@ -7,11 +7,9 @@ let activeProfiles = [];
 
 const controls = {
   keyword: document.querySelector("#keyword"),
+  minAge: document.querySelector("#minAge"),
   maxAge: document.querySelector("#maxAge"),
-  minHeightFeet: document.querySelector("#minHeightFeet"),
-  minHeightInches: document.querySelector("#minHeightInches"),
-  maxHeightFeet: document.querySelector("#maxHeightFeet"),
-  maxHeightInches: document.querySelector("#maxHeightInches"),
+  minHeight: document.querySelector("#minHeight"),
   gender: document.querySelector("#gender"),
   occupation: document.querySelector("#occupation"),
   education: document.querySelector("#education"),
@@ -91,9 +89,9 @@ function getInitials(name) {
 function getFilters() {
   return {
     keyword: normalize(controls.keyword.value),
+    minAge: toNullableNumber(controls.minAge.value),
     maxAge: toNullableNumber(controls.maxAge.value),
-    minHeight: heightFilterValue(controls.minHeightFeet, controls.minHeightInches),
-    maxHeight: heightFilterValue(controls.maxHeightFeet, controls.maxHeightInches),
+    minHeight: toNullableNumber(controls.minHeight.value),
     gender: controls.gender.value,
     occupation: controls.occupation.value,
     education: controls.education.value,
@@ -103,13 +101,6 @@ function getFilters() {
     familyDistrict: controls.familyDistrict.value,
     postingDistrict: controls.postingDistrict.value,
   };
-}
-
-function heightFilterValue(feetControl, inchesControl) {
-  const feet = toNullableNumber(feetControl.value);
-  if (feet === null) return null;
-  const inches = toNullableNumber(inchesControl.value) ?? 0;
-  return (feet * 12 + inches) * 2.54;
 }
 
 function toNullableNumber(value) {
@@ -124,13 +115,14 @@ function isMissing(value) {
 }
 
 function populateAgeOptions() {
-  const select = controls.maxAge;
-  for (let age = 21; age <= 50; age += 1) {
-    const option = document.createElement("option");
-    option.value = String(age);
-    option.textContent = `${age}`;
-    select.appendChild(option);
-  }
+  [controls.minAge, controls.maxAge].forEach((select) => {
+    for (let age = 21; age <= 50; age += 1) {
+      const option = document.createElement("option");
+      option.value = String(age);
+      option.textContent = `${age}`;
+      select.appendChild(option);
+    }
+  });
 }
 
 function matchesProfile(profile, filters) {
@@ -149,16 +141,11 @@ function matchesProfile(profile, filters) {
   );
 
   if (filters.keyword && !searchable.includes(filters.keyword)) return false;
+  if (filters.minAge !== null && (age === null || age < filters.minAge)) return false;
   if (filters.maxAge !== null && (age === null || age > filters.maxAge)) return false;
   if (
     filters.minHeight !== null &&
     (profile.heightCm === null || profile.heightCm === undefined || profile.heightCm < filters.minHeight)
-  ) {
-    return false;
-  }
-  if (
-    filters.maxHeight !== null &&
-    (profile.heightCm === null || profile.heightCm === undefined || profile.heightCm > filters.maxHeight)
   ) {
     return false;
   }
