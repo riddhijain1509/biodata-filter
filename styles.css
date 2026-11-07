@@ -579,6 +579,22 @@ button:hover,
   display: block;
 }
 
+.auth-page .auth-brand { justify-content: center; margin-bottom: 28px; color: #f8ecd8; }
+.auth-page .auth-brand strong { font-size: clamp(34px, 7vw, 52px); letter-spacing: -.045em; }
+.auth-page .auth-shell { margin-inline: auto; text-align: left; }
+.auth-page .auth-form label { color: #f1dfc2; }
+.auth-page .auth-links { color: #e3ceb0; }
+.auth-page .auth-submit {
+  min-height: 72px;
+  padding: 16px 22px;
+  border: 1px solid #d7b777;
+  color: #442d1c;
+  background: #e8d1a7;
+  font-size: 22px;
+  line-height: 1.32;
+}
+.auth-page .auth-submit:hover { color: #2f1e16; background: #f0ddb9; border-color: #c59f6b; }
+
 .auth-brand small {
   margin-top: 2px;
   color: var(--muted);
@@ -911,12 +927,15 @@ button:hover,
   }
 
   .auth-page {
-    display: block;
+    display: grid;
+    min-height: 100svh;
+    place-items: center;
     padding: 16px;
   }
 
   .auth-shell {
-    margin: 16px auto;
+    width: min(100%, 500px);
+    margin: 0 auto;
   }
 
   .auth-card {
@@ -1128,16 +1147,16 @@ input::placeholder { color: #7a5b47; opacity: 1; }
 .landing-page .hero-copy h1 span:nth-child(4) { animation-name: landing-word-left; }
 .landing-page .hero-copy h1 span:nth-child(5) { animation-name: landing-word-right; }
 .landing-page .landing-hands { width: clamp(220px, 30vw, 360px); }
-.landing-page .hero-copy h1 span { animation-duration: 1.1s; }
-.landing-page .hero-copy h1 span:nth-child(1) { animation-delay: .15s; }
-.landing-page .hero-copy h1 span:nth-child(2) { animation-delay: .38s; }
-.landing-page .hero-copy h1 span:nth-child(3) { animation-delay: .61s; }
-.landing-page .hero-copy h1 span:nth-child(4) { animation-delay: .84s; }
-.landing-page .hero-copy h1 span:nth-child(5) { animation-delay: 1.07s; }
+.landing-page .hero-copy h1 span { animation-duration: 1.5s; }
+.landing-page .hero-copy h1 span:nth-child(1) { animation-delay: .2s; }
+.landing-page .hero-copy h1 span:nth-child(2) { animation-delay: .55s; }
+.landing-page .hero-copy h1 span:nth-child(3) { animation-delay: .9s; }
+.landing-page .hero-copy h1 span:nth-child(4) { animation-delay: 1.25s; }
+.landing-page .hero-copy h1 span:nth-child(5) { animation-delay: 1.6s; }
 .landing-page .hero-copy h1 span:nth-child(4),
-.landing-page .hero-copy h1 span:nth-child(5) { animation-duration: 1.8s; }
-.landing-page .hero-copy h1 span:nth-child(4) { animation-delay: .35s; }
-.landing-page .hero-copy h1 span:nth-child(5) { animation-delay: 1.05s; }
+.landing-page .hero-copy h1 span:nth-child(5) { animation-duration: 2.2s; }
+.landing-page .hero-copy h1 span:nth-child(4) { animation-delay: .9s; }
+.landing-page .hero-copy h1 span:nth-child(5) { animation-delay: 1.75s; }
 @keyframes landing-word-in { to { opacity: 1; transform: translateY(0); } }
 @keyframes landing-word-left { from { opacity: 0; transform: translateX(-90px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes landing-word-right { from { opacity: 0; transform: translateX(90px); } to { opacity: 1; transform: translateX(0); } }

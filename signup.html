@@ -13,18 +13,15 @@
         <span><strong>GlobalRistey</strong></span>
       </a>
 
-      <section class="auth-card" aria-labelledby="auth-title">
-        <p class="eyebrow">Create access</p>
-        <h1 id="auth-title">Sign up</h1>
-        <p class="auth-intro">Enter your details to explore approved biodata profiles. Your phone is not added to any biodata profile.</p>
+      <section class="auth-card" aria-label="Create account">
 
         <form id="authForm" class="auth-form">
           <label>
-            First name
+            Your first name
             <input id="firstName" type="text" autocomplete="given-name" required placeholder="First name" />
           </label>
           <label>
-            Last name
+            Your last name
             <input id="lastName" type="text" autocomplete="family-name" required placeholder="Last name" />
           </label>
           <label>
@@ -32,7 +29,7 @@
             <span class="phone-row"><select id="countryCode" aria-label="Country code"><option value="+91" selected>+91</option><option value="+1">+1</option><option value="+44">+44</option><option value="+61">+61</option><option value="+971">+971</option></select><input id="mobileNumber" type="tel" autocomplete="tel-national" required inputmode="numeric" placeholder="98765 43210" /></span>
           </label>
           <div id="authStatus" class="auth-status" role="status" hidden></div>
-          <button class="auth-submit" type="submit">Continue to profiles</button>
+          <button class="auth-submit" type="submit"><span>Continue to<br />profile search</span></button>
         </form>
 
         <div class="auth-links single-line">
