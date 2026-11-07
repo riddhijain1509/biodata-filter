@@ -15,6 +15,13 @@ const SHEET_SETUP_OCCUPATIONS = [
   "Other",
 ];
 
+const SHEET_SETUP_CASTES = [
+  "GUPTA",
+  "AGRAWAL",
+  "JAIN",
+  "OTHERS",
+];
+
 const SHEET_SETUP_MANGLIK_OPTIONS = ["Yes", "No"];
 
 /**
@@ -89,6 +96,13 @@ function prepareProfileSheet() {
     validationRowCount,
     SHEET_SETUP_OCCUPATIONS,
     "Choose one occupation category. Existing non-category values are kept but must be corrected."
+  );
+  applyListValidation_(
+    sheet,
+    columnByHeader.Caste,
+    validationRowCount,
+    SHEET_SETUP_CASTES,
+    "Choose a caste category, or Others when it is not listed."
   );
   applyListValidation_(
     sheet,

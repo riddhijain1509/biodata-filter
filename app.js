@@ -26,6 +26,8 @@ const districtSuggestions = {
 };
 
 const resultCount = document.querySelector("#resultCount");
+const resultCurrent = document.querySelector("#resultCurrent");
+const resultTotal = document.querySelector("#resultTotal");
 const resultsList = document.querySelector("#resultsList");
 const emptyState = document.querySelector("#emptyState");
 const resetBtn = document.querySelector("#resetBtn");
@@ -305,14 +307,15 @@ function render() {
       }),
     );
 
-  resultCount.textContent = filtered.length;
+  resultCurrent.textContent = filtered.length;
+  resultTotal.textContent = `of ${activeProfiles.length}`;
   resultsList.innerHTML = filtered.map(renderProfile).join("");
   emptyState.hidden = filtered.length > 0;
 }
 
 function populateDynamicFilters() {
   populateSelect(controls.education, activeProfiles.map((profile) => profile.education));
-  populateSelect(controls.caste, activeProfiles.map((profile) => profile.caste));
+  populateSelect(controls.caste, ["GUPTA", "AGRAWAL", "JAIN", "OTHERS"]);
   populateDatalist(
     districtSuggestions.family,
     activeProfiles.map((profile) => profile.familyDistrict),
