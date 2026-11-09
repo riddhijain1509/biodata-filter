@@ -99,7 +99,7 @@ function getFilters() {
     gender: controls.gender.value,
     occupation: controls.occupation.value,
     education: controls.education.value,
-    incomeBand: controls.incomeBand.value,
+    incomeBand: controls.incomeBand?.value || "",
     caste: controls.caste.value,
     manglik: controls.manglik.value,
     familyDistrict: controls.familyDistrict.value,
@@ -401,6 +401,7 @@ async function loadProfiles() {
 }
 
 Object.values(controls).forEach((control) => {
+  if (!control) return;
   control.addEventListener("input", () => {
     updateFilterValueStyles();
     render();
@@ -422,6 +423,7 @@ updateFilterValueStyles();
 
 resetBtn.addEventListener("click", () => {
   Object.values(controls).forEach((control) => {
+    if (!control) return;
     control.value = "";
   });
   updateFilterValueStyles();
