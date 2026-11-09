@@ -23,6 +23,12 @@ const SHEET_SETUP_CASTES = [
 ];
 
 const SHEET_SETUP_MANGLIK_OPTIONS = ["Yes", "No"];
+const SHEET_SETUP_DOB_DAYS = Array.from({ length: 31 }, function(_, index) {
+  return String(index + 1);
+});
+const SHEET_SETUP_DOB_MONTHS = Array.from({ length: 12 }, function(_, index) {
+  return String(index + 1);
+});
 
 /**
  * Run once from Apps Script to prepare the existing profile sheet.
@@ -51,7 +57,9 @@ function prepareProfileSheet() {
     "Family District",
     "Posting District",
     "Caste",
-    "DOB",
+    "DOB Day",
+    "DOB Month",
+    "DOB Year",
     "Occupation",
     "Manglik",
   ];
@@ -89,7 +97,30 @@ function prepareProfileSheet() {
   );
   applyHeightValidation_(sheet, columnByHeader.Height, validationRowCount);
   applyIncomeValidation_(sheet, columnByHeader.Income, validationRowCount);
-  applyDateValidation_(sheet, columnByHeader.DOB, validationRowCount);
+  if (columnByHeader.DOB) {
+    applyDateValidation_(sheet, columnByHeader.DOB, validationRowCount);
+  }
+  applyListValidation_(
+    sheet,
+    columnByHeader["DOB Day"],
+    validationRowCount,
+    SHEET_SETUP_DOB_DAYS,
+    "Choose the day of birth."
+  );
+  applyListValidation_(
+    sheet,
+    columnByHeader["DOB Month"],
+    validationRowCount,
+    SHEET_SETUP_DOB_MONTHS,
+    "Choose the month of birth."
+  );
+  applyListValidation_(
+    sheet,
+    columnByHeader["DOB Year"],
+    validationRowCount,
+    getDobYearOptions_(),
+    "Choose the year of birth."
+  );
   applyListValidation_(
     sheet,
     columnByHeader.Occupation,
@@ -119,6 +150,71 @@ function prepareProfileSheet() {
   Logger.log(
     "Profile sheet prepared. Existing rows and extra columns were preserved."
   );
+}
+
+function getDobYearOptions_() {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = 1940; year <= currentYear; year++) years.push(String(year));
+  return years;
+}
+
+/**
+ * One-time migration: copy existing DOB values into the three DOB dropdown columns.
+ * The original DOB column is never changed or cleared.
+ */
+function backfillDobParts() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SETUP_SHEET_NAME);
+  if (!sheet) throw new Error("Missing sheet: " + SHEET_SETUP_SHEET_NAME);
+
+  const headers = getSetupHeaders_(sheet);
+  const columns = {
+    dob: headers.indexOf("DOB") + 1,
+    day: headers.indexOf("DOB Day") + 1,
+    month: headers.indexOf("DOB Month") + 1,
+    year: headers.indexOf("DOB Year") + 1,
+  };
+  if (Object.values(columns).some(function(column) { return column === 0; })) {
+    throw new Error("Run prepareProfileSheet() first to add the DOB columns.");
+  }
+
+  const rowCount = Math.max(sheet.getLastRow() - 1, 0);
+  if (!rowCount) return;
+
+  const timezone = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone() || Session.getScriptTimeZone();
+  const dobValues = sheet.getRange(2, columns.dob, rowCount, 1).getValues();
+  const dayValues = sheet.getRange(2, columns.day, rowCount, 1).getValues();
+  const monthValues = sheet.getRange(2, columns.month, rowCount, 1).getValues();
+  const yearValues = sheet.getRange(2, columns.year, rowCount, 1).getValues();
+
+  dobValues.forEach(function(row, index) {
+    const parts = splitDobParts_(row[0], timezone);
+    if (!parts) return;
+    if (!dayValues[index][0]) dayValues[index][0] = parts.day;
+    if (!monthValues[index][0]) monthValues[index][0] = parts.month;
+    if (!yearValues[index][0]) yearValues[index][0] = parts.year;
+  });
+
+  sheet.getRange(2, columns.day, rowCount, 1).setValues(dayValues);
+  sheet.getRange(2, columns.month, rowCount, 1).setValues(monthValues);
+  sheet.getRange(2, columns.year, rowCount, 1).setValues(yearValues);
+  Logger.log("Existing DOB values were copied into the DOB Day, DOB Month, and DOB Year columns.");
+}
+
+function splitDobParts_(value, timezone) {
+  if (!value) return null;
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return {
+      day: String(value.getDate()),
+      month: String(value.getMonth() + 1),
+      year: String(value.getFullYear()),
+    };
+  }
+
+  const text = String(value).trim();
+  const match = text.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+  if (!match) return null;
+  return { day: String(Number(match[1])), month: String(Number(match[2])), year: match[3] };
 }
 
 function renameHeaderIfPresent_(sheet, oldHeader, newHeader) {
@@ -159,29 +255,20 @@ function applyProfileIdValidation_(sheet, column, rowCount) {
 }
 
 function applyHeightValidation_(sheet, column, rowCount) {
-  const columnLetter = setupColumnLetter_(column);
-  const cell = columnLetter + "2";
+  const options = ["4"];
+  for (let feet = 4; feet <= 6; feet++) {
+    for (let inches = 1; inches <= 11; inches++) {
+      options.push(feet + "." + String(inches).padStart(2, "0"));
+    }
+    if (feet < 6) options.push(String(feet + 1));
+  }
+  options.push("7");
+
   const rule = SpreadsheetApp.newDataValidation()
-    .requireFormulaSatisfied(
-      "=OR(" +
-        cell +
-        '="",AND(ISNUMBER(' +
-        cell +
-        "),OR(AND(" +
-        cell +
-        ">=120," +
-        cell +
-        "<=220),AND(" +
-        cell +
-        ">=4," +
-        cell +
-        "<8,ROUND(MOD(" +
-        cell +
-        ",1)*100,0)<=11))))"
-    )
+    .requireValueInList(options, true)
     .setAllowInvalid(true)
     .setHelpText(
-      "Preferred: centimetres, for example 160. Existing 5.03 means 5 ft 3 in."
+      "Choose 4 for 4 ft and below, 4.01 through 6.11, or 7 for 7 ft and above. Existing 5.03 means 5 ft 3 in."
     )
     .build();
 
@@ -189,10 +276,14 @@ function applyHeightValidation_(sheet, column, rowCount) {
 }
 
 function applyIncomeValidation_(sheet, column, rowCount) {
+  const options = [];
+  for (let lpa = 1; lpa <= 50; lpa++) options.push(String(lpa));
+  options.push("50+");
+
   const rule = SpreadsheetApp.newDataValidation()
-    .requireNumberGreaterThanOrEqualTo(0)
+    .requireValueInList(options, true)
     .setAllowInvalid(true)
-    .setHelpText("Enter annual income in LPA, for example 12, 18.5, or 30.")
+    .setHelpText("Choose annual income in lakhs from 1 to 50, or 50+ for higher income.")
     .build();
 
   sheet.getRange(2, column, rowCount, 1).setDataValidation(rule);

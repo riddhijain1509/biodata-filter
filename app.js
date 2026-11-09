@@ -230,10 +230,9 @@ function formatHeight(profile) {
 function matchesIncomeBand(incomeLpa, band) {
   if (!band) return true;
   if (incomeLpa === null || incomeLpa === undefined) return false;
-  if (band === "under15") return incomeLpa < 15;
-  if (band === "15to25") return incomeLpa >= 15 && incomeLpa <= 25;
-  if (band === "over25") return incomeLpa > 25;
-  return true;
+  if (band === "over50") return incomeLpa >= 50;
+  const minimumIncome = Number(band);
+  return Number.isFinite(minimumIncome) && incomeLpa >= minimumIncome;
 }
 
 function renderProfile(profile) {

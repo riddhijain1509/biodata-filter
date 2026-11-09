@@ -147,7 +147,7 @@ function deleteRowsForMissingPdfs_(
 }
 
 /**
- * Run once to check the Drive folder automatically every minute.
+ * Run once to check the Drive folder automatically every 15 minutes.
  */
 function installPdfSyncTrigger() {
   ScriptApp.getProjectTriggers()
@@ -160,8 +160,36 @@ function installPdfSyncTrigger() {
 
   ScriptApp.newTrigger("syncPdfProfilesFromDrive")
     .timeBased()
-    .everyMinutes(1)
+    .everyMinutes(15)
     .create();
+}
+
+/**
+ * Run once to prevent manual edits to the PDF-generated columns.
+ * The Drive sync can still insert, update, and delete these cells when it
+ * runs as the account that owns this Apps Script.
+ */
+function protectGeneratedPdfColumns() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(PROFILE_SHEET_NAME);
+  if (!sheet) throw new Error("Missing sheet: " + PROFILE_SHEET_NAME);
+
+  const description = "Generated PDF columns (Profile ID, Name, Profile PDF Link)";
+  const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  let protection = protections.filter(function(item) {
+    return item.getDescription() === description;
+  })[0];
+
+  if (!protection) {
+    protection = sheet
+      .getRange(1, 1, sheet.getMaxRows(), 3)
+      .protect()
+      .setDescription(description);
+  }
+
+  protection.setWarningOnly(false);
+  if (protection.canDomainEdit()) protection.setDomainEdit(false);
+
+  Logger.log("Protected columns A:C. Drive synchronization can still manage PDF rows.");
 }
 
 function getProfilePdfs_() {

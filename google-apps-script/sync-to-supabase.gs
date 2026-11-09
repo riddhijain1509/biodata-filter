@@ -120,6 +120,9 @@ function readProfilesFromSheet_(spreadsheet, sheet) {
     caste: findSyncColumn_(headers, ["Caste"]),
     education: findSyncColumn_(headers, ["Education"]),
     dob: findSyncColumn_(headers, ["DOB", "Date of Birth"]),
+    dobDay: findSyncColumn_(headers, ["DOB Day"]),
+    dobMonth: findSyncColumn_(headers, ["DOB Month"]),
+    dobYear: findSyncColumn_(headers, ["DOB Year"]),
     height: findSyncColumn_(headers, ["Height", "Hight (0.00)"]),
     occupation: findSyncColumn_(headers, ["Occupation"]),
     income: findSyncColumn_(headers, ["Income"]),
@@ -132,10 +135,15 @@ function readProfilesFromSheet_(spreadsheet, sheet) {
   };
 
   Object.keys(columns).forEach(function(key) {
+    if (["dob", "dobDay", "dobMonth", "dobYear"].indexOf(key) !== -1) return;
     if (columns[key] === -1) {
       throw new Error("Missing required Sheet column for: " + key);
     }
   });
+  const hasDobParts = columns.dobDay !== -1 && columns.dobMonth !== -1 && columns.dobYear !== -1;
+  if (columns.dob === -1 && !hasDobParts) {
+    throw new Error("Sheet must contain DOB or DOB Day, DOB Month, and DOB Year columns.");
+  }
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) {
@@ -200,7 +208,10 @@ function readProfilesFromSheet_(spreadsheet, sheet) {
       pdf_file_id: pdf.id,
       pdf_url: pdf.url,
       pdf_name: pdf.name,
-      date_of_birth: toSyncIsoDate_(row[columns.dob], timezone),
+      date_of_birth: toSyncIsoDate_(
+        buildSyncDobValue_(row, columns) || (columns.dob === -1 ? "" : row[columns.dob]),
+        timezone
+      ),
       height_text: height.text,
       height_cm: height.cm,
       income_text: income.text,
@@ -221,6 +232,14 @@ function readProfilesFromSheet_(spreadsheet, sheet) {
   }
 
   return { profiles: profiles, profileIds: profileIds };
+}
+
+function buildSyncDobValue_(row, columns) {
+  const day = syncText_(row[columns.dobDay]);
+  const month = syncText_(row[columns.dobMonth]);
+  const year = syncText_(row[columns.dobYear]);
+  if (!day || !month || !year) return "";
+  return [day.padStart(2, "0"), month.padStart(2, "0"), year].join("-");
 }
 
 function upsertSupabaseProfiles_(connection, profiles) {
