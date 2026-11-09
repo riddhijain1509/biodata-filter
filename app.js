@@ -28,6 +28,8 @@ const districtSuggestions = {
 const resultCount = document.querySelector("#resultCount");
 const resultCurrent = document.querySelector("#resultCurrent");
 const resultTotal = document.querySelector("#resultTotal");
+const approvedProfilesSummary = document.querySelector("#approvedProfilesSummary");
+const approvedProfilesCount = document.querySelector("#approvedProfilesCount");
 const resultsList = document.querySelector("#resultsList");
 const emptyState = document.querySelector("#emptyState");
 const resetBtn = document.querySelector("#resetBtn");
@@ -309,8 +311,16 @@ function render() {
 
   resultCurrent.textContent = filtered.length;
   resultTotal.textContent = `of ${activeProfiles.length}`;
+  if (approvedProfilesSummary && approvedProfilesCount) approvedProfilesCount.textContent = filtered.length;
   resultsList.innerHTML = filtered.map(renderProfile).join("");
   emptyState.hidden = filtered.length > 0;
+}
+
+function updateFilterValueStyles() {
+  Object.values(controls).forEach((control) => {
+    if (!control) return;
+    control.classList.toggle("has-value", String(control.value || "").trim() !== "");
+  });
 }
 
 function populateDynamicFilters() {
@@ -391,16 +401,30 @@ async function loadProfiles() {
 }
 
 Object.values(controls).forEach((control) => {
-  control.addEventListener("input", render);
-  control.addEventListener("change", render);
+  control.addEventListener("input", () => {
+    updateFilterValueStyles();
+    render();
+  });
+  control.addEventListener("change", () => {
+    updateFilterValueStyles();
+    render();
+  });
+  if (control.type === "search") {
+    control.addEventListener("search", () => {
+      updateFilterValueStyles();
+      render();
+    });
+  }
 });
 
 populateAgeOptions();
+updateFilterValueStyles();
 
 resetBtn.addEventListener("click", () => {
   Object.values(controls).forEach((control) => {
     control.value = "";
   });
+  updateFilterValueStyles();
   render();
 });
 
